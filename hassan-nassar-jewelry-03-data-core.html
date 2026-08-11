@@ -109,6 +109,7 @@
   <!-- مكتبات فايربيس وملف أمان الترخيص -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="license-guard.js"></script>
 <script src="firestore-db.js"></script>
 
@@ -182,7 +183,7 @@
   <div class="dbbar glass">
     <div class="status">
       <div class="dot ok" id="dbDot"></div>
-      <span id="dbStatusText">متصل بفولدر: —</span>
+      <span id="dbStatusText">متصل بالسحابة: —</span>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
       <button class="btn btn-ghost btn-sm" onclick="exportBackup()">⬇️ نسخة احتياطية يدوية</button>
@@ -306,11 +307,18 @@
           <div class="num" id="safeBalance">0.00 ج.م</div>
           <div class="lbl">رصيد الخزنة الحالي — مطابق تلقائياً لكل الحركات</div>
         </div>
+        <h2>إدارة الخزنة</h2>
         <label>نوع الحركة</label>
-        <select id="safeType"><option value="income">إيراد (زيادة)</option><option value="expense">مصروف (خصم)</option></select>
-        <label>المبلغ</label><input id="safeAmount" type="number" step="0.01" placeholder="0.00">
-        <label>البيان</label><input id="safeDesc" placeholder="مثال: مبيعات اليوم / إيجار المحل">
+        <select id="safeType">
+          <option value="capital_in">➕ إضافة رأس مال</option>
+          <option value="capital_out">➖ سحب من رأس المال</option>
+          <option value="income">💵 إيراد / إيداع يدوي</option>
+          <option value="expense">💸 صرف / مصروف يدوي</option>
+        </select>
+        <label>المبلغ</label><input id="safeAmount" type="number" min="0.01" step="0.01" placeholder="0.00">
+        <label>البيان</label><input id="safeDesc" placeholder="مثال: رأس مال إضافي / سحب نقدي / إيداع">
         <button class="btn btn-gold" style="width:100%;" onclick="addSafeTx()">➕ تسجيل الحركة</button>
+        <div style="margin-top:12px;padding:10px 12px;border:1px solid rgba(10,132,255,.18);background:rgba(10,132,255,.06);border-radius:12px;color:var(--muted);font-size:11.5px;line-height:1.7;">تقدر تزود أو تسحب من الخزنة مباشرة من هنا بدون إنشاء فاتورة. كل حركة تُحفظ فوراً على السحابة وتظهر في سجل الخزنة.</div>
       </div>
       <div class="card glass">
         <h2>سجل حركات الخزنة</h2>
@@ -374,6 +382,8 @@ function showToast(msg){
    BOOT
 ========================================================= */
 let DATA = { inventory:[], customers:[], suppliers:[], safe:[], goldsmiths:[], goldsmithTx:[] };
+const _hnOriginalDBWrite = DB.write.bind(DB);
+DB.write = async function(key,value){ const result=await _hnOriginalDBWrite(key,value); if(window.HNDriveBackup) window.HNDriveBackup(); return result; };
 
 async function afterConnect(){
   document.getElementById('gateScreen').style.display = 'none';
@@ -580,28 +590,43 @@ function renderSuppliers(){
 /* =========================================================
    SAFE / TREASURY
 ========================================================= */
+function safeSignedAmount(t){
+  const amount = Number(t && t.amount) || 0;
+  return (t.type==='income' || t.type==='capital_in') ? amount : -amount;
+}
+function safeTypeLabel(type){
+  return ({income:'إيراد',expense:'مصروف',capital_in:'رأس مال +',capital_out:'سحب رأس مال'})[type] || 'حركة';
+}
 async function addSafeTx(){
   const type = document.getElementById('safeType').value;
-  const amount = parseFloat(document.getElementById('safeAmount').value);
+  const amount = Number.parseFloat(document.getElementById('safeAmount').value);
   const desc = document.getElementById('safeDesc').value.trim();
-  if(!amount || amount<=0 || !desc){ showToast('أدخل المبلغ والبيان'); return; }
+  if(!Number.isFinite(amount) || amount<=0 || !desc){ showToast('أدخل مبلغاً صحيحاً والبيان'); return; }
+  if(type==='capital_out' && getSafeBalance() < amount){ showToast('لا يمكن سحب مبلغ أكبر من رصيد الخزنة الحالي'); return; }
 
-  DATA.safe.push({ id:'sfx_'+Date.now(), type, amount, desc, at: Date.now() });
+  const now = Date.now();
+  DATA.safe.push({ id:'sfx_'+now+'_'+Math.random().toString(36).slice(2,7), type, amount:+amount.toFixed(2), desc, at:now, source:'manual' });
   await DB.write('safe', DATA.safe);
   document.getElementById('safeAmount').value=''; document.getElementById('safeDesc').value='';
   renderSafe();
-  showToast(type==='income' ? 'تمت إضافة الإيراد للخزنة' : 'تم تسجيل المصروف وخصمه من الخزنة');
+  const msg = {capital_in:'تمت إضافة رأس المال للخزنة بنجاح',capital_out:'تم سحب رأس المال من الخزنة',income:'تمت إضافة الإيراد للخزنة',expense:'تم تسجيل المصروف وخصمه من الخزنة'}[type];
+  showToast(msg || 'تم تسجيل حركة الخزنة');
 }
+function getSafeBalance(){ return DATA.safe.reduce((sum,t)=>sum + safeSignedAmount(t),0); }
 function renderSafe(){
-  const balance = DATA.safe.reduce((sum,t)=> sum + (t.type==='income' ? t.amount : -t.amount), 0);
+  const balance = getSafeBalance();
   document.getElementById('safeBalance').textContent = balance.toLocaleString('ar-EG',{minimumFractionDigits:2}) + ' ج.م';
   document.getElementById('safeEmpty').style.display = DATA.safe.length ? 'none' : 'block';
-  document.getElementById('safeTableBody').innerHTML = [...DATA.safe].reverse().map(t=>`<tr>
-    <td><span class="pill ${t.type}">${t.type==='income'?'إيراد':'مصروف'}</span></td>
-    <td>${t.desc}</td>
-    <td style="font-family:ui-monospace,Menlo,monospace;">${t.amount.toFixed(2)} ج.م</td>
-    <td style="color:var(--muted);">${new Date(t.at).toLocaleString('ar-EG')}</td>
-  </tr>`).join('');
+  document.getElementById('safeTableBody').innerHTML = [...DATA.safe].reverse().map(t=>{
+    const sign = safeSignedAmount(t) >= 0 ? '+' : '−';
+    const cls = safeSignedAmount(t) >= 0 ? 'income' : 'expense';
+    return `<tr>
+      <td><span class="pill ${cls}">${safeTypeLabel(t.type)}</span></td>
+      <td>${t.desc}</td>
+      <td style="font-family:ui-monospace,Menlo,monospace;">${sign}${Math.abs(Number(t.amount)||0).toFixed(2)} ج.م</td>
+      <td style="color:var(--muted);">${new Date(t.at).toLocaleString('ar-EG')}</td>
+    </tr>`;
+  }).join('');
 }
 
 /* =========================================================
@@ -670,97 +695,115 @@ function renderGoldsmiths(){
 ========================================================= */
 let gAccessToken = null;
 let gTokenClient = null;
+let gdriveBackupTimer = null;
+let gdriveConnected = false;
 
 window.addEventListener('load', ()=>{
-  if(typeof google === 'undefined' || !google.accounts) return; // script blocked/offline — Drive features simply stay unavailable
+  if(typeof google === 'undefined' || !google.accounts){
+    const st=document.getElementById('gdriveStatus'); if(st) st.textContent='Google Drive: غير جاهز';
+    return;
+  }
   gTokenClient = google.accounts.oauth2.initTokenClient({
     client_id: GOOGLE_CLIENT_ID,
     scope: 'https://www.googleapis.com/auth/drive.file',
     callback: (resp)=>{
-      if(resp.error) return;
+      if(resp.error){
+        console.error('Google Drive OAuth:', resp);
+        showToast('تعذر ربط Google Drive. تأكد من إضافة رابط الموقع ضمن Authorized JavaScript origins في Google Cloud.');
+        return;
+      }
       gAccessToken = resp.access_token;
       onGdriveConnected();
     }
   });
-  // If previously connected in this browser, try a silent (no popup) token refresh.
   if(localStorage.getItem('gdrive_connected') === '1'){
-    gTokenClient.requestAccessToken({ prompt: '' });
+    try { gTokenClient.requestAccessToken({prompt:''}); } catch(e) {}
   }
 });
 
 function connectGoogleDrive(){
-  if(!gTokenClient){ showToast('مكتبة Google لسه بتحمّل، حاول تاني بعد ثانية'); return; }
-  gTokenClient.requestAccessToken({ prompt: 'consent' });
+  if(!gTokenClient){ showToast('Google Drive لم يكتمل تحميله بعد — حاول مرة أخرى'); return; }
+  try { gTokenClient.requestAccessToken({prompt:'consent'}); }
+  catch(e){ showToast('تعذر فتح نافذة موافقة Google Drive'); }
 }
-
 function onGdriveConnected(){
+  gdriveConnected=true;
   localStorage.setItem('gdrive_connected','1');
-  document.getElementById('gdriveStatus').textContent = 'Google Drive: متصل ✅';
-  document.getElementById('gdriveConnectBtn').style.display = 'none';
-  document.getElementById('gdriveBackupBtn').style.display = 'inline-block';
-  document.getElementById('gdriveAutoWrap').style.display = 'inline-flex';
-  document.getElementById('gdriveAutoToggle').checked = localStorage.getItem('gdrive_auto') === '1';
+  const st=document.getElementById('gdriveStatus'); if(st) st.textContent='Google Drive: متصل ✅';
+  const cb=document.getElementById('gdriveConnectBtn'); if(cb) cb.style.display='none';
+  const bb=document.getElementById('gdriveBackupBtn'); if(bb) bb.style.display='inline-block';
+  const aw=document.getElementById('gdriveAutoWrap'); if(aw) aw.style.display='inline-flex';
+  const at=document.getElementById('gdriveAutoToggle'); if(at) at.checked=localStorage.getItem('gdrive_auto')==='1';
   maybeRunAutoBackup();
+  window.HNDriveBackup = scheduleDriveBackup;
+}
+function toggleGdriveAuto(){ localStorage.setItem('gdrive_auto', document.getElementById('gdriveAutoToggle').checked?'1':'0'); }
+function scheduleDriveBackup(){
+  if(!gdriveConnected || !gAccessToken) return;
+  clearTimeout(gdriveBackupTimer);
+  gdriveBackupTimer=setTimeout(()=>backupToGoogleDrive({silent:true}), 2500);
 }
 
-function toggleGdriveAuto(){
-  localStorage.setItem('gdrive_auto', document.getElementById('gdriveAutoToggle').checked ? '1' : '0');
-}
-
-async function backupToGoogleDrive(){
-  if(!gAccessToken){ showToast('اربط حساب Google Drive أولاً'); return; }
-  const metadata = { name: 'hn-jewelry-backup-'+new Date().toISOString().slice(0,10)+'.json', mimeType:'application/json' };
-  const boundary = 'hnboundary' + Date.now();
-  const body =
-    `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n` +
-    `--${boundary}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(DATA)}\r\n--${boundary}--`;
+async function backupToGoogleDrive(options){
+  options=options||{};
+  if(!gAccessToken){ if(!options.silent) showToast('اربط حساب Google Drive أولاً'); return false; }
   try{
-    const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-      method:'POST',
-      headers:{ 'Authorization':'Bearer '+gAccessToken, 'Content-Type':'multipart/related; boundary='+boundary },
-      body
+    const fullBackup = await DB.exportAll();
+    const metadata={
+      name:'hn-jewelry-full-backup-'+new Date().toISOString().slice(0,10)+'.json',
+      mimeType:'application/json',
+      description:'نسخة احتياطية كاملة لنظام مجوهرات حسن نصار — Firebase/Firestore'
+    };
+    const boundary='hnboundary'+Date.now();
+    const body=`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n`+
+      `--${boundary}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(fullBackup)}\r\n--${boundary}--`;
+    const res=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{
+      method:'POST',headers:{'Authorization':'Bearer '+gAccessToken,'Content-Type':'multipart/related; boundary='+boundary},body
     });
-    if(res.ok){
-      localStorage.setItem('gdrive_last_backup', Date.now());
-      showToast('تم رفع نسخة احتياطية على Google Drive بنجاح ☁️');
-    } else {
-      showToast('فشل الرفع على Drive — حاول تربط الحساب تاني');
+    if(!res.ok){
+      if(!options.silent) showToast('فشل رفع النسخة على Google Drive — أعد ربط الحساب');
+      return false;
     }
-  }catch(e){ showToast('لا يوجد اتصال بالإنترنت الآن — حاول لاحقاً'); }
+    localStorage.setItem('gdrive_last_backup',String(Date.now()));
+    if(!options.silent) showToast('تم رفع نسخة كاملة من بيانات البرنامج على Google Drive ☁️');
+    return true;
+  }catch(e){
+    console.error('Drive backup failed:',e);
+    if(!options.silent) showToast('تعذر رفع النسخة الآن — تأكد من الإنترنت وصلاحيات Drive');
+    return false;
+  }
 }
-
 function maybeRunAutoBackup(){
-  if(localStorage.getItem('gdrive_auto') !== '1') return;
-  const last = parseInt(localStorage.getItem('gdrive_last_backup') || '0', 10);
-  if(Date.now() - last > 24*60*60*1000) backupToGoogleDrive();
+  if(localStorage.getItem('gdrive_auto')!=='1') return;
+  const last=parseInt(localStorage.getItem('gdrive_last_backup')||'0',10);
+  if(Date.now()-last>24*60*60*1000) backupToGoogleDrive({silent:true});
 }
 
 function exportBackup(){
-  const blob = new Blob([JSON.stringify(DATA, null, 2)], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'hn-jewelry-backup-' + new Date().toISOString().slice(0,10) + '.json';
-  a.click();
-  URL.revokeObjectURL(url);
-  showToast('تم تنزيل نسخة احتياطية كاملة');
+  DB.exportAll().then(fullBackup=>{
+    const blob=new Blob([JSON.stringify(fullBackup,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob); const a=document.createElement('a');
+    a.href=url; a.download='hn-jewelry-full-backup-'+new Date().toISOString().slice(0,10)+'.json'; a.click();
+    URL.revokeObjectURL(url); showToast('تم تنزيل نسخة احتياطية كاملة لكل بيانات البرنامج');
+  }).catch(()=>showToast('تعذر إنشاء النسخة الاحتياطية الآن'));
 }
 async function importBackup(e){
-  const file = e.target.files[0];
-  if(!file) return;
-  const text = await file.text();
+  const file=e.target.files[0]; if(!file) return;
   try{
-    const parsed = JSON.parse(text);
-    DATA = Object.assign({ inventory:[], customers:[], suppliers:[], safe:[], goldsmiths:[], goldsmithTx:[] }, parsed);
-    await DB.write('inventory', DATA.inventory);
-    await DB.write('customers', DATA.customers);
-    await DB.write('suppliers', DATA.suppliers);
-    await DB.write('safe', DATA.safe);
-    await DB.write('goldsmiths', DATA.goldsmiths);
-    await DB.write('goldsmith_tx', DATA.goldsmithTx);
-    renderAll();
-    showToast('تم استعادة البيانات بنجاح');
-  }catch(err){ showToast('ملف النسخة الاحتياطية غير صالح'); }
+    const parsed=JSON.parse(await file.text());
+    await DB.importAll(parsed);
+    DATA.inventory=await DB.read('inventory',[]);
+    DATA.customers=await DB.read('customers',[]);
+    DATA.suppliers=await DB.read('suppliers',[]);
+    DATA.safe=await DB.read('safe',[]);
+    DATA.goldsmiths=await DB.read('goldsmiths',[]);
+    DATA.goldsmithTx=await DB.read('goldsmith_tx',[]);
+    renderAll(); showToast('تمت استعادة النسخة الكاملة بنجاح');
+  }catch(err){ console.error(err); showToast('ملف النسخة الاحتياطية غير صالح أو غير متوافق'); }
+  e.target.value='';
 }
+
+window.addEventListener('beforeunload',()=>clearTimeout(gdriveBackupTimer));
 
 function renderAll(){
   renderKaratTabs();
