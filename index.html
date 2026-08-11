@@ -126,7 +126,7 @@
 <div class="setup-gate" id="gateScreen" style="display:none;">
   <div class="setup-card glass">
     <h1 style="font-size:18px;margin-bottom:10px;">الاتصال بقاعدة بيانات المحل</h1>
-    <p style="color:var(--muted);font-size:13px;margin-bottom:20px;">اختر مجلد "مجوهرات حسن نصار" لعرض سعر الذهب الموحّد في الشريط العلوي.</p>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:20px;">البيانات الأساسية محفوظة سحابياً على Firebase. اختيار المجلد اختياري لعمل نسخة محلية إضافية.</p>
     <button class="btn btn-gold" onclick="DB.pickFolder().then(afterConnect)">📁 اختيار مجلد البيانات</button>
     <p style="color:var(--muted);font-size:11px;margin-top:14px;">يمكنك أيضاً تخطي هذه الخطوة والدخول مباشرة لأي وحدة — كل وحدة تطلب الاتصال بنفسها عند فتحها.</p>
     <button class="btn" style="background:rgba(255,255,255,0.06);color:var(--cream);border:1px solid rgba(255,255,255,0.1);margin-top:8px;" onclick="skipGate()">تخطي والدخول للنظام</button>
@@ -293,6 +293,9 @@ async function submitAuth(){
     const map = {
       'auth/user-not-found':'لا يوجد حساب بهذا الرقم — جرب إنشاء حساب جديد',
       'auth/wrong-password':'كلمة السر غير صحيحة',
+      'auth/invalid-credential':'رقم الهاتف أو كلمة السر غير صحيحة',
+      'auth/too-many-requests':'محاولات كثيرة. انتظر قليلاً ثم حاول مرة أخرى',
+      'auth/network-request-failed':'تعذر الاتصال بخدمة تسجيل الدخول. تأكد من الإنترنت',
       'auth/email-already-in-use':'يوجد حساب مسجل بهذا الرقم بالفعل',
       'auth/invalid-email':'رقم الهاتف غير صالح',
       'auth/weak-password':'كلمة السر ضعيفة جداً'
@@ -335,7 +338,7 @@ async function afterConnect(){
   const base = settings.basePrice21 || 3850;
   const inv = await DB.read('inventory', []);
   const safe = await DB.read('safe', []);
-  const balance = safe.reduce((s,t)=> s + (t.type==='income'? t.amount : -t.amount), 0);
+  const balance = safe.reduce((s,t)=> s + ((t.type==='income'||t.type==='capital_in') ? t.amount : -t.amount), 0);
 
   const karats = [24,21,18,14];
   const items = karats.map(k=>({k, v:(base*(k/21)).toFixed(0)}));
