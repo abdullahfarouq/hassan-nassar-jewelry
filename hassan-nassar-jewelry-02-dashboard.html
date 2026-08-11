@@ -232,6 +232,7 @@
   <!-- مكتبات فايربيس وملف أمان الترخيص -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="license-guard.js"></script>
 <script src="firestore-db.js"></script>
 </head>
@@ -441,7 +442,7 @@ async function loadRealKpis(){
   document.getElementById('kpiInventoryWeight').textContent = totalWeight.toLocaleString('ar-EG',{maximumFractionDigits:1}) + ' جم';
 
   // رصيد الخزنة
-  const safeBalance = safe.reduce((s,t)=> s + (t.type==='income'? t.amount : -t.amount), 0);
+  const safeBalance = safe.reduce((s,t)=> s + ((t.type==='income'||t.type==='capital_in') ? t.amount : -t.amount), 0);
   document.getElementById('kpiSafeBalance').textContent = fmtMoney(safeBalance) + ' ج.م';
 
   // مبيعات وفواتير اليوم / أمس
