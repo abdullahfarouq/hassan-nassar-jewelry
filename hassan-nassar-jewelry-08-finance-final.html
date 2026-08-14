@@ -328,14 +328,28 @@ async function addOpex(){
   const amount = parseFloat(document.getElementById('opexAmount').value)||0;
   if(!desc || !amount){ showToast('أدخل البيان والمبلغ'); return; }
 
-  DATA.opex.push({ id:'opx_'+Date.now(), cat, desc, amount, at:Date.now() });
-  await DB.write('opex', DATA.opex);
-  DATA.safe.push({ id:'sfx_'+Date.now(), type:'expense', amount, desc:'['+OPEX_LABELS[cat]+'] '+desc, at:Date.now() });
-  await DB.write('safe', DATA.safe);
-
-  document.getElementById('opexDesc').value=''; document.getElementById('opexAmount').value='';
-  renderOpex();
-  showToast('تم تسجيل المصروف وخصمه من الخزنة');
+  const opexTx = { id:'opx_'+Date.now(), cat, desc, amount, at:Date.now() };
+  const safeTx = { id:'sfx_'+Date.now(), type:'expense', amount, desc:'['+OPEX_LABELS[cat]+'] '+desc, at:Date.now() };
+  const nextOpex = DATA.opex.concat(opexTx);
+  const nextSafe = DATA.safe.concat(safeTx);
+  try {
+    await DB.write('opex', nextOpex);
+    try {
+      await DB.write('safe', nextSafe);
+    } catch (safeErr) {
+      // Keep the two datasets consistent if the safe write fails.
+      try { await DB.write('opex', DATA.opex); } catch (rollbackErr) { console.error('Opex rollback failed:', rollbackErr); }
+      throw safeErr;
+    }
+    DATA.opex = nextOpex;
+    DATA.safe = nextSafe;
+    document.getElementById('opexDesc').value=''; document.getElementById('opexAmount').value='';
+    renderOpex();
+    showToast('تم تسجيل المصروف وخصمه من الخزنة وحفظه على السحابة');
+  } catch (err) {
+    console.error('Opex save failed:', err);
+    showToast('لم يتم حفظ المصروف بالكامل على السحابة. حاول مرة أخرى.');
+  }
 }
 function renderOpex(){
   document.getElementById('opexEmpty').style.display = DATA.opex.length?'none':'block';
