@@ -196,16 +196,37 @@
 
     async write(key, value) {
       const u = await requireUser(true);
+      if (!key || typeof key !== 'string') throw new Error('INVALID_DATA_KEY');
+
       const payload = {
         value: value,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
         updatedBy: u.uid || '',
         updatedByName: u.name || 'غير معروف'
       };
-      await fsdb.collection(DATA_COLLECTION).doc(key).set(payload, { merge:false });
-      await this._mirrorWrite(key, value);
-      await logActivity('write', key, { size: Array.isArray(value) ? value.length : null });
-      return true;
+
+      // Retry transient Firestore/network failures so a normal connection hiccup
+      // does not make a successful-looking UI action disappear after refresh.
+      let lastError = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          await fsdb.collection(DATA_COLLECTION).doc(key).set(payload, { merge:false });
+          const verify = await fsdb.collection(DATA_COLLECTION).doc(key).get({ source:'server' }).catch(() => null);
+          if (verify && verify.exists && verify.data() && Object.prototype.hasOwnProperty.call(verify.data(), 'value')) {
+            await this._mirrorWrite(key, value);
+            await logActivity('write', key, { size: Array.isArray(value) ? value.length : null });
+            return true;
+          }
+          throw new Error('WRITE_VERIFY_FAILED');
+        } catch (e) {
+          lastError = e;
+          if (attempt < 2) await new Promise(r => setTimeout(r, 500 * Math.pow(2, attempt)));
+        }
+      }
+
+      console.error('Cloud write failed:', key, lastError);
+      const code = lastError && (lastError.code || lastError.message) || 'UNKNOWN';
+      throw new Error('FIRESTORE_WRITE_FAILED:' + code);
     },
 
     async remove(key) {
