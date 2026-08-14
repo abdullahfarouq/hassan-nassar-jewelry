@@ -383,7 +383,11 @@ function showToast(msg){
 ========================================================= */
 let DATA = { inventory:[], customers:[], suppliers:[], safe:[], goldsmiths:[], goldsmithTx:[] };
 const _hnOriginalDBWrite = DB.write.bind(DB);
-DB.write = async function(key,value){ const result=await _hnOriginalDBWrite(key,value); if(window.HNDriveBackup) window.HNDriveBackup(); return result; };
+DB.write = async function(key,value){
+  const result = await _hnOriginalDBWrite(key,value);
+  if(window.HNDriveBackup) { try { window.HNDriveBackup(); } catch(e) { console.warn('Drive backup scheduling failed:', e); } }
+  return result;
+};
 
 async function afterConnect(){
   document.getElementById('gateScreen').style.display = 'none';
@@ -605,12 +609,23 @@ async function addSafeTx(){
   if(type==='capital_out' && getSafeBalance() < amount){ showToast('لا يمكن سحب مبلغ أكبر من رصيد الخزنة الحالي'); return; }
 
   const now = Date.now();
-  DATA.safe.push({ id:'sfx_'+now+'_'+Math.random().toString(36).slice(2,7), type, amount:+amount.toFixed(2), desc, at:now, source:'manual' });
-  await DB.write('safe', DATA.safe);
-  document.getElementById('safeAmount').value=''; document.getElementById('safeDesc').value='';
-  renderSafe();
-  const msg = {capital_in:'تمت إضافة رأس المال للخزنة بنجاح',capital_out:'تم سحب رأس المال من الخزنة',income:'تمت إضافة الإيراد للخزنة',expense:'تم تسجيل المصروف وخصمه من الخزنة'}[type];
-  showToast(msg || 'تم تسجيل حركة الخزنة');
+  const tx = { id:'sfx_'+now+'_'+Math.random().toString(36).slice(2,7), type, amount:+amount.toFixed(2), desc, at:now, source:'manual' };
+  const nextSafe = DATA.safe.concat(tx);
+
+  try {
+    // Save to Firestore FIRST. Only update the in-memory balance after the
+    // cloud write succeeds, preventing a failed write from looking successful.
+    await DB.write('safe', nextSafe);
+    DATA.safe = nextSafe;
+    document.getElementById('safeAmount').value='';
+    document.getElementById('safeDesc').value='';
+    renderSafe();
+    const msg = {capital_in:'تمت إضافة رأس المال للخزنة بنجاح وحفظه على السحابة',capital_out:'تم سحب رأس المال من الخزنة وحفظ الحركة',income:'تمت إضافة الإيراد للخزنة وحفظه',expense:'تم تسجيل المصروف وخصمه من الخزنة'}[type];
+    showToast(msg || 'تم تسجيل حركة الخزنة');
+  } catch (err) {
+    console.error('Safe transaction save failed:', err);
+    showToast('لم يتم حفظ الحركة على السحابة. تأكد من تسجيل الدخول والإنترنت ثم حاول مرة أخرى.');
+  }
 }
 function getSafeBalance(){ return DATA.safe.reduce((sum,t)=>sum + safeSignedAmount(t),0); }
 function renderSafe(){
@@ -709,7 +724,11 @@ window.addEventListener('load', ()=>{
     callback: (resp)=>{
       if(resp.error){
         console.error('Google Drive OAuth:', resp);
-        showToast('تعذر ربط Google Drive. تأكد من إضافة رابط الموقع ضمن Authorized JavaScript origins في Google Cloud.');
+        gAccessToken = null;
+        gdriveConnected = false;
+        localStorage.removeItem('gdrive_connected');
+        const detail = resp.error_description || resp.error || 'رفض غير معروف';
+        showToast('تعذر ربط Google Drive: ' + detail + ' — تأكد من Test users وAuthorized JavaScript origins وتفعيل Drive API.');
         return;
       }
       gAccessToken = resp.access_token;
