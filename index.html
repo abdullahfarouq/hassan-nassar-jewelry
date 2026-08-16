@@ -96,9 +96,10 @@
   <div class="setup-card glass">
     <div class="mark" style="width:44px;height:44px;border-radius:13px;background:linear-gradient(145deg,var(--gold-1),var(--gold-2));display:flex;align-items:center;justify-content:center;font-weight:700;color:#151007;font-size:15px;margin:0 auto 14px;">HN</div>
     <h1 id="authTitle" style="font-size:18px;margin-bottom:6px;">تسجيل الدخول</h1>
-    <p style="color:var(--muted);font-size:12.5px;margin-bottom:20px;">مجوهرات حسن نصار — الدخول برقم الهاتف</p>
+    <p style="color:var(--muted);font-size:12.5px;margin-bottom:20px;">مجوهرات حسن نصار — الدخول بالبريد الإلكتروني</p>
 
     <div id="authError" style="display:none;color:var(--red);font-size:12.5px;background:rgba(255,105,97,0.1);border:1px solid rgba(255,105,97,0.25);border-radius:10px;padding:8px 12px;margin-bottom:14px;"></div>
+    <div id="authInfo" style="display:none;color:var(--green);font-size:12.5px;background:rgba(48,209,88,0.1);border:1px solid rgba(48,209,88,0.25);border-radius:10px;padding:8px 12px;margin-bottom:14px;"></div>
 
     <div id="regNameWrap" style="display:none;text-align:right;margin-bottom:10px;">
       <label style="font-size:12px;color:var(--muted);">الاسم</label>
@@ -106,13 +107,20 @@
     </div>
 
     <div style="text-align:right;margin-bottom:10px;">
-      <label style="font-size:12px;color:var(--muted);">رقم الهاتف</label>
-      <input type="tel" id="authPhone" placeholder="01xxxxxxxxx" style="width:100%;padding:11px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:var(--cream);margin-top:4px;direction:ltr;text-align:right;">
+      <label style="font-size:12px;color:var(--muted);">البريد الإلكتروني</label>
+      <input type="email" id="authEmail" placeholder="example@email.com" style="width:100%;padding:11px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:var(--cream);margin-top:4px;direction:ltr;text-align:right;">
     </div>
 
-    <div style="text-align:right;margin-bottom:16px;">
+    <div style="text-align:right;margin-bottom:8px;">
       <label style="font-size:12px;color:var(--muted);">كلمة السر</label>
-      <input type="password" id="authPassword" placeholder="••••••••" style="width:100%;padding:11px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:var(--cream);margin-top:4px;">
+      <div style="position:relative;margin-top:4px;">
+        <input type="password" id="authPassword" placeholder="••••••••" style="width:100%;padding:11px 40px 11px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:var(--cream);">
+        <button type="button" onclick="togglePasswordVisibility()" id="pwToggleBtn" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:4px;">👁️</button>
+      </div>
+    </div>
+
+    <div style="text-align:left;margin-bottom:16px;">
+      <a href="#" onclick="sendPasswordReset();return false;" style="color:var(--gold-1);font-size:11.5px;">نسيت كلمة السر؟</a>
     </div>
 
     <button class="btn btn-gold" style="width:100%;" id="authSubmitBtn" onclick="submitAuth()">تسجيل الدخول</button>
@@ -223,7 +231,7 @@ const DB = {
   }
 };
 
-/* ===== ACCOUNTS: PHONE + PASSWORD LOGIN (Firebase Auth, free Spark plan — no SMS) ===== */
+/* ===== ACCOUNTS: EMAIL + PASSWORD LOGIN (Firebase Auth, free Spark plan) ===== */
 const firebaseConfig = {
   apiKey: "AIzaSyAQMILfvEzLXxUKYbScldvKTHKQEk4PpN4",
   authDomain: "hassan-nassar-license.firebaseapp.com",
@@ -239,22 +247,34 @@ const fbDb = firebase.firestore();
 
 let authMode = 'login'; // 'login' | 'register'
 let authInProgress = false; // guards against onAuthStateChanged double-firing during submitAuth
+let pwVisible = false;
 
-function phoneToEmail(phone){
-  const digits = phone.replace(/\D/g,'');
-  return digits + '@hn-jewelry.app';
+function togglePasswordVisibility(){
+  pwVisible = !pwVisible;
+  const input = document.getElementById('authPassword');
+  const btn = document.getElementById('pwToggleBtn');
+  input.type = pwVisible ? 'text' : 'password';
+  btn.textContent = pwVisible ? '🙈' : '👁️';
 }
+
 function showAuthError(msg){
+  document.getElementById('authInfo').style.display = 'none';
   const el = document.getElementById('authError');
   el.textContent = msg; el.style.display = 'block';
 }
-function clearAuthError(){
+function showAuthInfo(msg){
   document.getElementById('authError').style.display = 'none';
+  const el = document.getElementById('authInfo');
+  el.textContent = msg; el.style.display = 'block';
+}
+function clearAuthMessages(){
+  document.getElementById('authError').style.display = 'none';
+  document.getElementById('authInfo').style.display = 'none';
 }
 
 function toggleAuthMode(){
   authMode = authMode === 'login' ? 'register' : 'login';
-  clearAuthError();
+  clearAuthMessages();
   document.getElementById('regNameWrap').style.display = authMode === 'register' ? 'block' : 'none';
   document.getElementById('authTitle').textContent = authMode === 'register' ? 'إنشاء حساب جديد' : 'تسجيل الدخول';
   document.getElementById('authSubmitBtn').textContent = authMode === 'register' ? 'إنشاء الحساب' : 'تسجيل الدخول';
@@ -262,28 +282,44 @@ function toggleAuthMode(){
   document.getElementById('authSwitchLink').textContent = authMode === 'register' ? 'تسجيل الدخول' : 'إنشاء حساب جديد';
 }
 
+async function sendPasswordReset(){
+  clearAuthMessages();
+  const email = document.getElementById('authEmail').value.trim();
+  if(!email){ showAuthError('اكتب البريد الإلكتروني الأول عشان نبعتلك رابط إعادة التعيين'); return; }
+  try{
+    await fbAuth.sendPasswordResetEmail(email);
+    showAuthInfo('تم إرسال رابط إعادة تعيين كلمة السر إلى بريدك الإلكتروني. افتح بريدك واتبع الرابط.');
+  }catch(e){
+    const map = {
+      'auth/user-not-found':'لا يوجد حساب بهذا البريد',
+      'auth/invalid-email':'البريد الإلكتروني غير صالح',
+      'auth/network-request-failed':'تعذر الاتصال بالخدمة. تأكد من الإنترنت'
+    };
+    showAuthError(map[e.code] || ('حدث خطأ (' + (e.code || e.message || 'غير معروف') + ')'));
+  }
+}
+
 async function submitAuth(){
-  clearAuthError();
-  const phone = document.getElementById('authPhone').value.trim();
+  clearAuthMessages();
+  const email = document.getElementById('authEmail').value.trim();
   const password = document.getElementById('authPassword').value;
   const name = document.getElementById('authName').value.trim();
 
-  if(!phone || !password){ showAuthError('من فضلك اكتب رقم الهاتف وكلمة السر'); return; }
+  if(!email || !password){ showAuthError('من فضلك اكتب البريد الإلكتروني وكلمة السر'); return; }
   if(authMode === 'register' && !name){ showAuthError('من فضلك اكتب الاسم'); return; }
   if(password.length < 6){ showAuthError('كلمة السر لازم تكون 6 حروف/أرقام على الأقل'); return; }
 
-  const email = phoneToEmail(phone);
   authInProgress = true;
   try{
     if(authMode === 'register'){
       const cred = await fbAuth.createUserWithEmailAndPassword(email, password);
       await fbDb.collection('accounts').doc(cred.user.uid).set({
-        name, phone, createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        name, email, createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         lastLogin: null, disabled: true
       });
       await fbAuth.signOut();
       authInProgress = false;
-      showAuthError('تم إنشاء الحساب بنجاح. لازم صاحب المحل يفعّل الحساب أولاً قبل ما تقدر تدخل — تواصل معه.');
+      showAuthInfo('تم إنشاء الحساب بنجاح. لازم صاحب المحل يفعّل الحساب أولاً قبل ما تقدر تدخل — تواصل معه.');
     }else{
       const cred = await fbAuth.signInWithEmailAndPassword(email, password);
       await checkProfileAndEnter(cred.user);
@@ -291,13 +327,13 @@ async function submitAuth(){
   }catch(e){
     authInProgress = false;
     const map = {
-      'auth/user-not-found':'لا يوجد حساب بهذا الرقم — جرب إنشاء حساب جديد',
+      'auth/user-not-found':'لا يوجد حساب بهذا البريد — جرب إنشاء حساب جديد',
       'auth/wrong-password':'كلمة السر غير صحيحة',
-      'auth/invalid-credential':'رقم الهاتف أو كلمة السر غير صحيحة',
+      'auth/invalid-credential':'البريد الإلكتروني أو كلمة السر غير صحيحة',
       'auth/too-many-requests':'محاولات كثيرة. انتظر قليلاً ثم حاول مرة أخرى',
       'auth/network-request-failed':'تعذر الاتصال بخدمة تسجيل الدخول. تأكد من الإنترنت',
-      'auth/email-already-in-use':'يوجد حساب مسجل بهذا الرقم بالفعل',
-      'auth/invalid-email':'رقم الهاتف غير صالح',
+      'auth/email-already-in-use':'يوجد حساب مسجل بهذا البريد بالفعل',
+      'auth/invalid-email':'البريد الإلكتروني غير صالح',
       'auth/weak-password':'كلمة السر ضعيفة جداً'
     };
     showAuthError(map[e.code] || ('حدث خطأ (' + (e.code || e.message || 'غير معروف') + ') — تأكد من تفعيل Email/Password في Firebase Authentication وقواعد Firestore'));
@@ -314,7 +350,7 @@ async function checkProfileAndEnter(user){
   }
   await fbDb.collection('accounts').doc(user.uid).update({ lastLogin: firebase.firestore.FieldValue.serverTimestamp() });
   const data = doc.data();
-  localStorage.setItem('hn_current_user', JSON.stringify({ name: data.name || '', phone: data.phone || '', uid: user.uid }));
+  localStorage.setItem('hn_current_user', JSON.stringify({ name: data.name || '', email: data.email || '', uid: user.uid }));
   authInProgress = false;
   await onAuthedProfileOk();
 }
