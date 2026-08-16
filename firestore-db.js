@@ -206,18 +206,19 @@
       };
 
       // Retry transient Firestore/network failures so a normal connection hiccup
-      // does not make a successful-looking UI action disappear after refresh.
+      // does not make a normal write attempt fail permanently.
+      // NOTE: we trust the resolved set() promise as proof of a successful write —
+      // Firestore's set()/update() promises only resolve once the write has been
+      // acknowledged by the backend. Re-reading immediately afterwards with
+      // source:'server' added a race condition that could report a false failure
+      // even though the write had already succeeded, so that extra check was removed.
       let lastError = null;
       for (let attempt = 0; attempt < 3; attempt++) {
         try {
           await fsdb.collection(DATA_COLLECTION).doc(key).set(payload, { merge:false });
-          const verify = await fsdb.collection(DATA_COLLECTION).doc(key).get({ source:'server' }).catch(() => null);
-          if (verify && verify.exists && verify.data() && Object.prototype.hasOwnProperty.call(verify.data(), 'value')) {
-            await this._mirrorWrite(key, value);
-            await logActivity('write', key, { size: Array.isArray(value) ? value.length : null });
-            return true;
-          }
-          throw new Error('WRITE_VERIFY_FAILED');
+          await this._mirrorWrite(key, value);
+          await logActivity('write', key, { size: Array.isArray(value) ? value.length : null });
+          return true;
         } catch (e) {
           lastError = e;
           if (attempt < 2) await new Promise(r => setTimeout(r, 500 * Math.pow(2, attempt)));
