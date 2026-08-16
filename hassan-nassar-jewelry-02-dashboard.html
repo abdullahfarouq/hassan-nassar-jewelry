@@ -134,7 +134,8 @@
   .content{ padding:18px 22px 30px; display:flex; flex-direction:column; gap:18px; }
 
   .kpi-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
-  .kpi-card{ padding:18px; display:flex; flex-direction:column; gap:8px; }
+  .kpi-card{ padding:18px; display:flex; flex-direction:column; gap:8px; cursor:pointer; transition:transform .18s var(--ease); }
+  .kpi-card:hover{ transform:translateY(-2px); }
   .kpi-card .lbl{ font-size:12px; color:var(--muted); }
   .kpi-card .val{ font-size:23px; font-weight:700; font-family:ui-monospace,Menlo,monospace; }
   .kpi-card .delta{ font-size:11.5px; }
@@ -186,7 +187,7 @@
   .qa-btn{
     padding:16px 12px; border-radius:14px; text-align:center; cursor:pointer;
     background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
-    transition:all .18s var(--ease); font-size:12.5px;
+    transition:all .18s var(--ease); font-size:12.5px; display:block;
   }
   .qa-btn:active{ transform:scale(0.95); }
   .qa-btn .ic{ font-size:20px; margin-bottom:6px; display:block; }
@@ -198,12 +199,15 @@
   /* alerts list */
   .alert-item{
     display:flex; align-items:center; gap:10px; padding:11px 12px; border-radius:12px;
-    background:rgba(255,255,255,0.03); margin-bottom:8px; font-size:12.5px;
+    background:rgba(255,255,255,0.03); margin-bottom:8px; font-size:12.5px; cursor:pointer;
+    transition:background .15s;
   }
+  .alert-item:hover{ background:rgba(255,255,255,0.06); }
   .alert-dot{ width:8px;height:8px;border-radius:50%; flex-shrink:0; }
   .alert-dot.warn{ background:#FF9F0A; box-shadow:0 0 8px rgba(255,159,10,.6); }
   .alert-dot.danger{ background:var(--red); box-shadow:0 0 8px rgba(255,105,97,.6); }
   .alert-dot.info{ background:var(--blue); box-shadow:0 0 8px rgba(10,132,255,.6); }
+  .alert-dot.ok{ background:var(--green); box-shadow:0 0 8px rgba(48,209,88,.6); }
   .alert-item .t{ flex:1; }
   .alert-item .time{ color:var(--muted); font-size:10.5px; }
 
@@ -272,19 +276,19 @@
       <div class="txt"><b>حسن نصار</b><small>الفرع الرئيسي</small></div>
     </div>
 
-    <div class="nav-item active"><span class="ic">🏠</span> الرئيسية</div>
-    <div class="nav-item"><span class="ic">🧾</span> فاتورة بيع جديدة</div>
-    <div class="nav-item"><span class="ic">📦</span> المخزون بالعيار</div>
-    <div class="nav-item"><span class="ic">👥</span> العملاء</div>
-    <div class="nav-item"><span class="ic">🚚</span> الموردين</div>
-    <div class="nav-item"><span class="ic">🔨</span> حسابات الصاغة</div>
-    <div class="nav-item"><span class="ic">💰</span> الخزنة</div>
+    <a href="hassan-nassar-jewelry-02-dashboard.html"><div class="nav-item active"><span class="ic">🏠</span> الرئيسية</div></a>
+    <a href="hassan-nassar-jewelry-04-invoice.html"><div class="nav-item"><span class="ic">🧾</span> فاتورة بيع جديدة</div></a>
+    <a href="hassan-nassar-jewelry-03-data-core.html"><div class="nav-item"><span class="ic">📦</span> المخزون بالعيار</div></a>
+    <a href="hassan-nassar-jewelry-03-data-core.html"><div class="nav-item"><span class="ic">👥</span> العملاء</div></a>
+    <a href="hassan-nassar-jewelry-03-data-core.html"><div class="nav-item"><span class="ic">🚚</span> الموردين</div></a>
+    <a href="hassan-nassar-jewelry-03-data-core.html"><div class="nav-item"><span class="ic">🔨</span> حسابات الصاغة</div></a>
+    <a href="hassan-nassar-jewelry-03-data-core.html"><div class="nav-item"><span class="ic">💰</span> الخزنة</div></a>
 
     <div class="nav-section-label">تقارير وإعدادات</div>
-    <div class="nav-item"><span class="ic">📊</span> التقارير والجرد</div>
-    <div class="nav-item"><span class="ic">🖨️</span> باركود وملصقات</div>
-    <div class="nav-item"><span class="ic">⚙️</span> الإعدادات</div>
-    <div class="nav-item"><span class="ic">ℹ️</span> عن المطور</div>
+    <a href="hassan-nassar-jewelry-05-barcode-reports.html"><div class="nav-item"><span class="ic">📊</span> التقارير والجرد</div></a>
+    <a href="hassan-nassar-jewelry-05-barcode-reports.html"><div class="nav-item"><span class="ic">🖨️</span> باركود وملصقات</div></a>
+    <a href="hassan-nassar-jewelry-06-settings-users.html"><div class="nav-item"><span class="ic">⚙️</span> الإعدادات</div></a>
+    <a href="hassan-nassar-jewelry-06-settings-users.html"><div class="nav-item"><span class="ic">ℹ️</span> عن المطور</div></a>
   </div>
 
   <!-- ===== MAIN ===== -->
@@ -301,10 +305,10 @@
       <h1>الرئيسية</h1>
       <div class="who glass">
         <div>
-          <b style="font-size:12.5px;">حسن نصار</b>
+          <b style="font-size:12.5px;" id="whoName">حسن نصار</b>
           <small>مالك المحل · متصل الآن</small>
         </div>
-        <div class="avatar">ح ن</div>
+        <div class="avatar" id="whoAvatar">ح ن</div>
       </div>
     </div>
 
@@ -312,26 +316,26 @@
 
       <!-- KPI CARDS -->
       <div class="kpi-grid">
-        <div class="kpi-card glass">
+        <a href="hassan-nassar-jewelry-04-invoice.html"><div class="kpi-card glass">
           <span class="lbl">مبيعات اليوم</span>
           <span class="val" id="kpiSalesToday">0 ج.م</span>
           <span class="delta" id="kpiSalesDelta" style="color:var(--muted);">لا توجد بيانات كافية</span>
-        </div>
-        <div class="kpi-card glass">
+        </div></a>
+        <a href="hassan-nassar-jewelry-03-data-core.html"><div class="kpi-card glass">
           <span class="lbl">رصيد الخزنة</span>
           <span class="val" id="kpiSafeBalance">0 ج.م</span>
           <span class="delta" style="color:var(--muted);">مطابق لكل الحركات</span>
-        </div>
-        <div class="kpi-card glass">
+        </div></a>
+        <a href="hassan-nassar-jewelry-03-data-core.html"><div class="kpi-card glass">
           <span class="lbl">إجمالي وزن المخزون</span>
           <span class="val" id="kpiInventoryWeight">0 جم</span>
           <span class="delta" style="color:var(--muted);">كل الأعيرة</span>
-        </div>
-        <div class="kpi-card glass">
+        </div></a>
+        <a href="hassan-nassar-jewelry-05-barcode-reports.html"><div class="kpi-card glass">
           <span class="lbl">فواتير اليوم</span>
           <span class="val" id="kpiInvoicesToday">0 فاتورة</span>
           <span class="delta" id="kpiTopKarat" style="color:var(--gold-1);">لا توجد فواتير بعد</span>
-        </div>
+        </div></a>
       </div>
 
       <!-- LIVE ACTIVITY FEED -->
@@ -351,13 +355,11 @@
 
           <div class="panel glass">
             <div class="panel-head">
-              <h2>حركة المبيعات هذا الأسبوع</h2>
+              <h2>حركة المبيعات آخر 7 أيام</h2>
               <span class="muted">بالجنيه المصري</span>
             </div>
             <div class="chart-box" id="chartBox"></div>
-            <div class="chart-labels">
-              <span>سبت</span><span>أحد</span><span>إثنين</span><span>ثلاثاء</span><span>أربعاء</span><span>خميس</span><span>جمعة</span>
-            </div>
+            <div class="chart-labels" id="chartLabels"></div>
           </div>
 
           <div class="panel glass">
@@ -381,32 +383,20 @@
           <div class="panel glass">
             <div class="panel-head"><h2>إجراءات سريعة</h2></div>
             <div class="qa-grid">
-              <div class="qa-btn gold"><span class="ic">🧾</span>فاتورة بيع</div>
-              <div class="qa-btn"><span class="ic">♻️</span>شراء كسر</div>
-              <div class="qa-btn"><span class="ic">📦</span>إضافة صنف</div>
-              <div class="qa-btn"><span class="ic">🖨️</span>طباعة باركود</div>
+              <a href="hassan-nassar-jewelry-04-invoice.html" class="qa-btn gold"><span class="ic">🧾</span>فاتورة بيع</a>
+              <a href="hassan-nassar-jewelry-07-transactions.html" class="qa-btn"><span class="ic">♻️</span>شراء كسر</a>
+              <a href="hassan-nassar-jewelry-03-data-core.html" class="qa-btn"><span class="ic">📦</span>إضافة صنف</a>
+              <a href="hassan-nassar-jewelry-05-barcode-reports.html" class="qa-btn"><span class="ic">🖨️</span>طباعة باركود</a>
             </div>
           </div>
 
           <div class="panel glass">
             <div class="panel-head">
               <h2>تنبيهات ذكية</h2>
-              <span class="muted">3 تنبيهات</span>
+              <span class="muted" id="alertsCount">—</span>
             </div>
-            <div class="alert-item">
-              <div class="alert-dot warn"></div>
-              <div class="t">مخزون عيار 18 وصل للحد الأدنى (82 جم)</div>
-              <div class="time">قبل ساعة</div>
-            </div>
-            <div class="alert-item">
-              <div class="alert-dot danger"></div>
-              <div class="t">رصيد الصائغ "كريم" تجاوز الحد المسموح</div>
-              <div class="time">اليوم</div>
-            </div>
-            <div class="alert-item">
-              <div class="alert-dot info"></div>
-              <div class="t">لم يتم عمل نسخة احتياطية منذ 4 أيام</div>
-              <div class="time">تذكير</div>
+            <div id="alertsList">
+              <div class="alert-item"><div class="alert-dot info"></div><div class="t">جاري تحميل التنبيهات...</div></div>
             </div>
           </div>
 
@@ -429,6 +419,8 @@
 /* DB engine now comes from firestore-db.js (loaded in <head>) — shared live data for every user */
 function fmtMoney(n){ return Math.round(n).toLocaleString('ar-EG'); }
 
+let LIVE = { inventory:[], safe:[], invoices:[], goldsmiths:[], goldsmithTx:[] };
+
 async function loadRealKpis(){
   const ok = await DB.tryAutoConnect();
   if(!ok) return; // no data connected yet — KPI cards stay at their zero defaults
@@ -436,6 +428,9 @@ async function loadRealKpis(){
   const inventory = await DB.read('inventory', []);
   const safe = await DB.read('safe', []);
   const invoices = await DB.read('invoices', []);
+  const goldsmiths = await DB.read('goldsmiths', []);
+  const goldsmithTx = await DB.read('goldsmith_tx', []);
+  LIVE = { inventory, safe, invoices, goldsmiths, goldsmithTx };
 
   // إجمالي وزن المخزون المتاح (كل الأعيرة)
   const totalWeight = inventory.filter(i=>i.status==='available').reduce((s,i)=> s + (i.netW||0), 0);
@@ -479,8 +474,83 @@ async function loadRealKpis(){
   const topKaratEl = document.getElementById('kpiTopKarat');
   const topKaratEntry = Object.entries(karatWeights).sort((a,b)=>b[1]-a[1])[0];
   topKaratEl.textContent = topKaratEntry ? ('أعلى مبيعًا: عيار ' + topKaratEntry[0]) : 'لا توجد فواتير بعد';
+
+  renderRealChart(invoices);
+  renderSmartAlerts(inventory, goldsmiths, goldsmithTx);
 }
 loadRealKpis();
+
+/* ===== REAL 7-DAY SALES CHART (based on invoices) ===== */
+function renderRealChart(invoices){
+  const days = [];
+  const labelsWrap = document.getElementById('chartLabels');
+  const dayNames = ['أحد','إثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'];
+  for(let i=6;i>=0;i--){
+    const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-i);
+    const next = new Date(d.getTime()+86400000);
+    const total = invoices.filter(inv=>inv.at>=d.getTime() && inv.at<next.getTime())
+      .reduce((s,inv)=>s+(inv.grand||0),0);
+    days.push({ label: dayNames[d.getDay()], total });
+  }
+  const max = Math.max(...days.map(d=>d.total), 1);
+  document.getElementById('chartBox').innerHTML = days.map(d=>
+    `<div class="bar" title="${fmtMoney(d.total)} ج.م" style="height:${Math.max(4,(d.total/max*100))}%"></div>`
+  ).join('');
+  labelsWrap.innerHTML = days.map(d=>`<span>${d.label}</span>`).join('');
+}
+
+/* ===== SMART ALERTS (derived from real data, not hardcoded) ===== */
+function renderSmartAlerts(inventory, goldsmiths, goldsmithTx){
+  const alerts = [];
+
+  // 1) low stock per karat (available weight under 30g, only for karats that have any items at all)
+  const LOW_STOCK_THRESHOLD = 30;
+  const weightByKarat = {};
+  inventory.filter(i=>i.status==='available').forEach(i=>{
+    weightByKarat[i.karat] = (weightByKarat[i.karat]||0) + (i.netW||0);
+  });
+  Object.entries(weightByKarat).forEach(([karat,w])=>{
+    if(w < LOW_STOCK_THRESHOLD){
+      alerts.push({ type:'warn', text:`مخزون عيار ${karat} منخفض (${w.toFixed(1)} جم متبقي)`, href:'hassan-nassar-jewelry-03-data-core.html' });
+    }
+  });
+
+  // 2) goldsmith balance too high (over 200g outstanding, example safety threshold)
+  const GS_THRESHOLD = 200;
+  goldsmiths.forEach(g=>{
+    const bal = goldsmithTx.filter(t=>t.goldsmithId===g.id).reduce((sum,t)=>{
+      if(t.type==='add') return sum + t.grams;
+      if(t.type==='receive' || t.type==='deduct') return sum - t.grams;
+      if(t.type==='settle') return 0;
+      return sum;
+    }, 0);
+    if(bal > GS_THRESHOLD){
+      alerts.push({ type:'danger', text:`رصيد الصائغ "${g.name}" مرتفع (${bal.toFixed(1)} جم)`, href:'hassan-nassar-jewelry-03-data-core.html' });
+    }
+  });
+
+  // 3) backup reminder (based on last local/drive backup timestamp)
+  const lastBackup = parseInt(localStorage.getItem('gdrive_last_backup')||'0',10);
+  const daysSince = lastBackup ? Math.floor((Date.now()-lastBackup)/86400000) : null;
+  if(!lastBackup){
+    alerts.push({ type:'info', text:'لم يتم عمل أي نسخة احتياطية على Google Drive بعد', href:'hassan-nassar-jewelry-03-data-core.html' });
+  } else if(daysSince >= 4){
+    alerts.push({ type:'info', text:`لم يتم عمل نسخة احتياطية منذ ${daysSince} يوم`, href:'hassan-nassar-jewelry-03-data-core.html' });
+  }
+
+  // 4) all clear
+  if(alerts.length === 0){
+    alerts.push({ type:'ok', text:'كل المؤشرات طبيعية — لا توجد تنبيهات حالياً', href:null });
+  }
+
+  document.getElementById('alertsCount').textContent = alerts.filter(a=>a.type!=='ok').length + ' تنبيه';
+  document.getElementById('alertsList').innerHTML = alerts.map(a=>{
+    const inner = `<div class="alert-dot ${a.type}"></div><div class="t">${a.text}</div>`;
+    return a.href
+      ? `<a href="${a.href}"><div class="alert-item">${inner}</div></a>`
+      : `<div class="alert-item" style="cursor:default;">${inner}</div>`;
+  }).join('');
+}
 
 /* ===== LIVE ACTIVITY FEED ===== */
 function timeAgo(ts){
@@ -514,26 +584,37 @@ if(window.HN_FSDB){
     .onSnapshot(snap => {
       const docs = []; snap.forEach(d => docs.push(d.data()));
       renderActivityFeed(docs);
+      // refresh KPIs/alerts live whenever new activity comes in, so the
+      // dashboard reacts immediately to actions done in any other module
+      loadRealKpis();
     }, err => console.warn('activity feed listener error:', err));
 }
 
-/* ===== ticker data (duplicated once for seamless loop) ===== */
-const tickItems = [
-  {k:'عيار 24', v:'٤٤٠٠ ج.م', chip:'up', chipv:'+0.6%'},
-  {k:'عيار 21', v:'٣٨٥٠ ج.م', chip:'up', chipv:'+0.6%'},
-  {k:'عيار 18', v:'٣٣٠٠ ج.م', chip:'down', chipv:'-0.2%'},
-  {k:'عيار 14', v:'٢٥٦٧ ج.م', chip:'up', chipv:'+0.6%'},
-  {k:'حركة المخزون اليوم', v:'٣١ عملية'},
-  {k:'الفرع', v:'الفرع الرئيسي'},
-  {k:'المستخدم', v:'حسن نصار'},
-];
+/* ===== current signed-in user shown in the topbar ===== */
+(function initWhoBadge(){
+  try{
+    const u = JSON.parse(localStorage.getItem('hn_current_user')||'null');
+    if(u && u.name){
+      document.getElementById('whoName').textContent = u.name;
+      const initials = u.name.trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('');
+      document.getElementById('whoAvatar').textContent = initials || 'ح ن';
+    }
+  }catch(e){}
+})();
+
+/* ===== ticker: live prices (from karat calculator) + real counters ===== */
 function renderTicker(){
+  const base = parseFloat(document.getElementById('basePrice').value) || 0;
+  const KS = [24,21,18,14];
+  const invCount = (LIVE.inventory||[]).filter(i=>i.status==='available').length;
+  const items = KS.map(k=>({ k:'عيار '+k, v:(base*(k/21)).toFixed(0)+' ج.م' }));
+  items.push({ k:'عدد أصناف المخزون', v: invCount });
+  items.push({ k:'الفرع', v:'الفرع الرئيسي' });
   const track = document.getElementById('tickerTrack');
   let html = '';
   for(let rep=0; rep<2; rep++){
-    tickItems.forEach(it=>{
-      html += `<div class="tick-item"><span class="k">${it.k}</span><span class="v">${it.v}</span>`
-        + (it.chip ? `<span class="chip ${it.chip}">${it.chipv}</span>` : '') + `</div><div class="tick-sep"></div>`;
+    items.forEach(it=>{
+      html += `<div class="tick-item"><span class="k">${it.k}</span><span class="v">${it.v}</span></div><div class="tick-sep"></div>`;
     });
   }
   track.innerHTML = html;
@@ -554,6 +635,7 @@ function renderKaratGrid(){
     const price = (base * (k/21)).toFixed(2);
     return `<div class="karat-cell"><div class="kt">عيار ${k}</div><div class="kv">${price} ج.م</div></div>`;
   }).join('');
+  renderTicker();
 }
 document.getElementById('basePrice').addEventListener('input', renderKaratGrid);
 renderKaratGrid();
@@ -568,15 +650,6 @@ function fetchLivePrice(){
   btn.style.opacity = .6;
   setTimeout(()=>{ btn.style.opacity = 1; }, 300);
 }
-
-/* ===== fake weekly chart ===== */
-function renderChart(){
-  const data = [38,52,41,60,47,73,55];
-  const max = Math.max(...data);
-  const box = document.getElementById('chartBox');
-  box.innerHTML = data.map(v=>`<div class="bar" style="height:${(v/max*100)}%"></div>`).join('');
-}
-renderChart();
 
 /* ===== spotlight command palette (Cmd/Ctrl+K) ===== */
 const overlay = document.getElementById('spotlightOverlay');
@@ -593,6 +666,23 @@ document.addEventListener('keydown', (e)=>{
 });
 overlay.addEventListener('click', (e)=>{ if(e.target === overlay) overlay.classList.remove('show'); });
 
+/* Spotlight quick commands: jump straight to the right module */
+const SPOTLIGHT_ROUTES = [
+  { kw:['فاتورة','بيع','invoice'], href:'hassan-nassar-jewelry-04-invoice.html' },
+  { kw:['عميل','عملاء','هاتف'], href:'hassan-nassar-jewelry-03-data-core.html' },
+  { kw:['جرد','مخزون','عيار'], href:'hassan-nassar-jewelry-03-data-core.html' },
+  { kw:['خزنة','رأس مال','مصروف'], href:'hassan-nassar-jewelry-03-data-core.html' },
+  { kw:['باركود','طباعة','تقرير'], href:'hassan-nassar-jewelry-05-barcode-reports.html' },
+  { kw:['إعدادات','مستخدم'], href:'hassan-nassar-jewelry-06-settings-users.html' }
+];
+spInput.addEventListener('keydown',(e)=>{
+  if(e.key !== 'Enter') return;
+  const q = spInput.value.trim();
+  if(!q) return;
+  const match = SPOTLIGHT_ROUTES.find(r => r.kw.some(k => q.includes(k)));
+  window.location.href = match ? match.href : 'hassan-nassar-jewelry-03-data-core.html';
+});
+
 /* ===== barcode scanner listener (keyboard-wedge style) =====
    Most USB barcode scanners type digits very fast then send Enter.
    This listens globally, buffers fast keystrokes, and on Enter
@@ -607,8 +697,13 @@ document.addEventListener('keydown', (e)=>{
   lastKeyTime = now;
   if(e.key === 'Enter'){
     if(scanBuffer.length >= 4){
-      console.log('Barcode scanned:', scanBuffer);
-      alert('تم مسح الباركود: ' + scanBuffer + '\n(سيتم فتح بيانات القطعة تلقائياً في وحدة المخزون/الفاتورة)');
+      const code = scanBuffer;
+      const item = (LIVE.inventory||[]).find(i=>i.code===code);
+      if(item){
+        window.location.href = 'hassan-nassar-jewelry-04-invoice.html?code=' + encodeURIComponent(code);
+      } else {
+        alert('لم يتم العثور على قطعة بهذا الباركود: ' + code);
+      }
     }
     scanBuffer = '';
   } else if(e.key.length === 1){
