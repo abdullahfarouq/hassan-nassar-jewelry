@@ -137,6 +137,9 @@
         <h2>بيانات المحل</h2>
         <label>اسم المحل</label><input id="setShopName" placeholder="مجوهرات حسن نصار">
         <label>اسم الفرع</label><input id="setBranch" placeholder="الفرع الرئيسي">
+        <label>هاتف المحل (يظهر على الفاتورة)</label><input id="setShopPhone" placeholder="مثال: 062/3441422 — م: 01221400888">
+        <label>عنوان المحل (يظهر على الفاتورة)</label><input id="setShopAddress" placeholder="مثال: 26 شارع مصطفى صدقي بالأربعين — السويس">
+        <label>الرقم الضريبي (اختياري)</label><input id="setTaxNo" placeholder="مثال: 119 — 174 — 205">
         <button class="btn btn-gold" style="width:100%;" onclick="saveGeneral()">💾 حفظ بيانات المحل</button>
       </div>
 
@@ -288,7 +291,7 @@ async function sha256(text){ const enc=new TextEncoder().encode(text); const d=a
 let SETTINGS = { shopName:SHOP_NAME, branch:'الفرع الرئيسي', basePrice21:3850 };
 let USERS = [];
 let AUDIT = [];
-const KARATS = [24,21,18,14,12,9];
+const KARATS = [24,14,12,9];
 
 async function logAudit(type, desc, by){
   AUDIT.push({ id:'aud_'+Date.now(), type, desc, by: by||'صاحب المحل', at: Date.now() });
@@ -306,6 +309,9 @@ async function afterConnect(){
 
   document.getElementById('setShopName').value = SETTINGS.shopName || SHOP_NAME;
   document.getElementById('setBranch').value = SETTINGS.branch || 'الفرع الرئيسي';
+  document.getElementById('setShopPhone').value = SETTINGS.shopPhone || '';
+  document.getElementById('setShopAddress').value = SETTINGS.shopAddress || '';
+  document.getElementById('setTaxNo').value = SETTINGS.taxNo || '';
   document.getElementById('setBasePrice').value = SETTINGS.basePrice21 || 3850;
 
   const silverPrices = await DB.read('silver_prices', { p999:0, p925:0, p800:0 });
@@ -330,6 +336,9 @@ document.querySelectorAll('.tab').forEach(t=>{
 async function saveGeneral(){
   SETTINGS.shopName = document.getElementById('setShopName').value.trim() || SHOP_NAME;
   SETTINGS.branch = document.getElementById('setBranch').value.trim();
+  SETTINGS.shopPhone = document.getElementById('setShopPhone').value.trim();
+  SETTINGS.shopAddress = document.getElementById('setShopAddress').value.trim();
+  SETTINGS.taxNo = document.getElementById('setTaxNo').value.trim();
   await DB.write('settings', SETTINGS);
   await logAudit('edit', 'تعديل بيانات المحل (الاسم/الفرع)');
   showToast('تم حفظ بيانات المحل');
@@ -346,7 +355,8 @@ async function saveGoldPrice(){
   SETTINGS.basePrice21 = parseFloat(document.getElementById('setBasePrice').value) || 0;
   await DB.write('settings', SETTINGS);
   await logAudit('edit', `تحديث سعر جرام عيار 21 إلى ${SETTINGS.basePrice21} ج.م`);
-  showToast('تم حفظ السعر — سيُقرأ تلقائياً من كل الشاشات الأخرى');
+  await broadcastPublicPrices();
+  showToast('تم حفظ السعر — سيُقرأ تلقائياً من كل الشاشات الأخرى وموقع البورتفوليو');
 }
 
 async function saveSilverPrices(){
@@ -357,7 +367,32 @@ async function saveSilverPrices(){
   };
   await DB.write('silver_prices', prices);
   await logAudit('edit', `تحديث أسعار الفضة (999: ${prices.p999} / 925: ${prices.p925} / 800: ${prices.p800})`);
-  showToast('تم حفظ أسعار الفضة — ستُقرأ تلقائياً من المخزون والفواتير');
+  await broadcastPublicPrices();
+  showToast('تم حفظ أسعار الفضة — ستُقرأ تلقائياً من المخزون والفواتير وموقع البورتفوليو');
+}
+
+/* =========================================================
+   PUBLIC PRICE BROADCAST — writes only the public-facing price
+   numbers (never inventory, customers, safe, or anything else)
+   into a separate, isolated Firestore document that the public
+   portfolio website reads live with NO login required. Keep the
+   Firestore security rule scoped to exactly this one document —
+   see the note printed in the console for the exact rule text.
+========================================================= */
+async function broadcastPublicPrices(){
+  try{
+    const silver = await DB.read('silver_prices', { p999:0, p925:0, p800:0 });
+    const karats = [24,14,12,9].map(k=>({ karat:k, price:+(SETTINGS.basePrice21*(k/21)).toFixed(2) }));
+    await firebase.firestore().collection('public_data').doc('prices').set({
+      shopName: SETTINGS.shopName || SHOP_NAME,
+      basePrice21: SETTINGS.basePrice21 || 0,
+      karats,
+      silver,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge:true });
+  }catch(e){
+    console.warn('Public price broadcast failed (portfolio site will keep showing the last known price):', e);
+  }
 }
 
 /* ===== USERS & PERMISSIONS ===== */
