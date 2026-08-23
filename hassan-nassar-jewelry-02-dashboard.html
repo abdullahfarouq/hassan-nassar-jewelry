@@ -314,10 +314,20 @@
 
     <div class="content">
 
+      <!-- PERIOD SELECTOR -->
+      <div class="panel glass" style="padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+        <div style="display:flex;gap:8px;" id="periodTabs">
+          <div class="qa-btn gold" data-period="day" style="padding:9px 16px;cursor:pointer;">📅 يومي</div>
+          <div class="qa-btn" data-period="week" style="padding:9px 16px;cursor:pointer;">🗓️ أسبوعي</div>
+          <div class="qa-btn" data-period="month" style="padding:9px 16px;cursor:pointer;">📆 شهري</div>
+        </div>
+        <span class="muted" id="periodRangeLbl" style="font-size:11.5px;color:var(--muted);"></span>
+      </div>
+
       <!-- KPI CARDS -->
       <div class="kpi-grid">
         <a href="hassan-nassar-jewelry-04-invoice.html"><div class="kpi-card glass">
-          <span class="lbl">مبيعات اليوم</span>
+          <span class="lbl" id="kpiSalesLbl">مبيعات اليوم</span>
           <span class="val" id="kpiSalesToday">0 ج.م</span>
           <span class="delta" id="kpiSalesDelta" style="color:var(--muted);">لا توجد بيانات كافية</span>
         </div></a>
@@ -332,7 +342,7 @@
           <span class="delta" style="color:var(--muted);">كل الأعيرة</span>
         </div></a>
         <a href="hassan-nassar-jewelry-05-barcode-reports.html"><div class="kpi-card glass">
-          <span class="lbl">فواتير اليوم</span>
+          <span class="lbl" id="kpiInvLbl">فواتير اليوم</span>
           <span class="val" id="kpiInvoicesToday">0 فاتورة</span>
           <span class="delta" id="kpiTopKarat" style="color:var(--gold-1);">لا توجد فواتير بعد</span>
         </div></a>
@@ -355,7 +365,7 @@
 
           <div class="panel glass">
             <div class="panel-head">
-              <h2>حركة المبيعات آخر 7 أيام</h2>
+              <h2 id="chartTitle">حركة المبيعات آخر 7 أيام</h2>
               <span class="muted">بالجنيه المصري</span>
             </div>
             <div class="chart-box" id="chartBox"></div>
@@ -421,6 +431,42 @@ function fmtMoney(n){ return Math.round(n).toLocaleString('ar-EG'); }
 
 let LIVE = { inventory:[], safe:[], invoices:[], goldsmiths:[], goldsmithTx:[] };
 
+/* ===== PERIOD STATE (يومي / أسبوعي / شهري) =====
+   Everything on the dashboard reacts to this — KPIs, chart, top-karat,
+   all recomputed from the same LIVE data instantly on switch (no refetch). */
+let CURRENT_PERIOD = localStorage.getItem('hn_dash_period') || 'day';
+
+const PERIOD_LABELS = { day:'اليوم', week:'الأسبوع', month:'الشهر' };
+const PERIOD_PREV_LABELS = { day:'أمس', week:'الأسبوع اللي فات', month:'الشهر اللي فات' };
+
+function periodRangeMs(period){
+  // returns { spanMs } — length of the selected window in ms
+  if(period === 'week') return 7*86400000;
+  if(period === 'month') return 30*86400000;
+  return 86400000; // day
+}
+function periodStart(period){
+  const start = new Date(); start.setHours(0,0,0,0);
+  if(period === 'week'){ start.setTime(start.getTime() - 6*86400000); } // last 7 days incl. today
+  if(period === 'month'){ start.setDate(1); } // calendar month to date
+  return start.getTime();
+}
+
+function setPeriod(period){
+  CURRENT_PERIOD = period;
+  localStorage.setItem('hn_dash_period', period);
+  document.querySelectorAll('#periodTabs [data-period]').forEach(btn=>{
+    btn.classList.toggle('gold', btn.dataset.period === period);
+  });
+  document.getElementById('kpiSalesLbl').textContent = 'مبيعات ' + PERIOD_LABELS[period];
+  document.getElementById('kpiInvLbl').textContent = 'فواتير ' + PERIOD_LABELS[period];
+  computeKpisForPeriod();
+}
+document.getElementById('periodTabs').addEventListener('click', (e)=>{
+  const btn = e.target.closest('[data-period]');
+  if(btn) setPeriod(btn.dataset.period);
+});
+
 async function loadRealKpis(){
   const ok = await DB.tryAutoConnect();
   if(!ok) return; // no data connected yet — KPI cards stay at their zero defaults
@@ -432,71 +478,123 @@ async function loadRealKpis(){
   const goldsmithTx = await DB.read('goldsmith_tx', []);
   LIVE = { inventory, safe, invoices, goldsmiths, goldsmithTx };
 
-  // إجمالي وزن المخزون المتاح (كل الأعيرة)
+  // إجمالي وزن المخزون المتاح (كل الأعيرة) — لا يتأثر بالفترة، رصيد لحظي
   const totalWeight = inventory.filter(i=>i.status==='available').reduce((s,i)=> s + (i.netW||0), 0);
   document.getElementById('kpiInventoryWeight').textContent = totalWeight.toLocaleString('ar-EG',{maximumFractionDigits:1}) + ' جم';
 
-  // رصيد الخزنة
+  // رصيد الخزنة — دايمًا رصيد لحظي فعلي مطابق لكل الحركات المسجلة
   const safeBalance = safe.reduce((s,t)=> s + ((t.type==='income'||t.type==='capital_in') ? t.amount : -t.amount), 0);
   document.getElementById('kpiSafeBalance').textContent = fmtMoney(safeBalance) + ' ج.م';
 
-  // مبيعات وفواتير اليوم / أمس
-  const todayStart = new Date(); todayStart.setHours(0,0,0,0);
-  const yesterdayStart = new Date(todayStart.getTime() - 86400000);
-  const todayInvoices = invoices.filter(inv => inv.at >= todayStart.getTime());
-  const yesterdayInvoices = invoices.filter(inv => inv.at >= yesterdayStart.getTime() && inv.at < todayStart.getTime());
+  document.querySelectorAll('#periodTabs [data-period]').forEach(btn=>{
+    btn.classList.toggle('gold', btn.dataset.period === CURRENT_PERIOD);
+  });
+  document.getElementById('kpiSalesLbl').textContent = 'مبيعات ' + PERIOD_LABELS[CURRENT_PERIOD];
+  document.getElementById('kpiInvLbl').textContent = 'فواتير ' + PERIOD_LABELS[CURRENT_PERIOD];
 
-  const todaySales = todayInvoices.reduce((s,inv)=> s + (inv.grand||0), 0);
-  const yesterdaySales = yesterdayInvoices.reduce((s,inv)=> s + (inv.grand||0), 0);
+  computeKpisForPeriod();
+  renderSmartAlerts(inventory, goldsmiths, goldsmithTx);
+}
+loadRealKpis();
 
-  document.getElementById('kpiSalesToday').textContent = fmtMoney(todaySales) + ' ج.م';
-  document.getElementById('kpiInvoicesToday').textContent = todayInvoices.length + ' فاتورة';
+/* ===== recompute sales/invoices/top-karat/chart for the selected period,
+   entirely from the already-loaded LIVE data — instant, no DB round trip ===== */
+function computeKpisForPeriod(){
+  const invoices = LIVE.invoices || [];
+  const period = CURRENT_PERIOD;
+  const start = periodStart(period);
+  const span = periodRangeMs(period);
+  const prevStart = start - span;
+
+  const curInvoices = invoices.filter(inv => inv.at >= start);
+  const prevInvoices = invoices.filter(inv => inv.at >= prevStart && inv.at < start);
+
+  const curSales = curInvoices.reduce((s,inv)=> s + (inv.grand||0), 0);
+  const prevSales = prevInvoices.reduce((s,inv)=> s + (inv.grand||0), 0);
+
+  document.getElementById('kpiSalesToday').textContent = fmtMoney(curSales) + ' ج.م';
+  document.getElementById('kpiInvoicesToday').textContent = curInvoices.length + ' فاتورة';
 
   const deltaEl = document.getElementById('kpiSalesDelta');
-  if(yesterdaySales > 0){
-    const pct = ((todaySales - yesterdaySales) / yesterdaySales) * 100;
+  if(prevSales > 0){
+    const pct = ((curSales - prevSales) / prevSales) * 100;
     const up = pct >= 0;
     deltaEl.style.color = up ? 'var(--green)' : 'var(--red)';
-    deltaEl.textContent = (up ? '▲ ' : '▼ ') + Math.abs(pct).toFixed(0) + '% عن أمس';
-  } else if(todaySales > 0){
+    deltaEl.textContent = (up ? '▲ ' : '▼ ') + Math.abs(pct).toFixed(0) + '% عن ' + PERIOD_PREV_LABELS[period];
+  } else if(curSales > 0){
     deltaEl.style.color = 'var(--green)';
-    deltaEl.textContent = '▲ أول مبيعات مسجلة';
+    deltaEl.textContent = '▲ أول مبيعات مسجلة في ' + PERIOD_LABELS[period] + ' ده';
   } else {
     deltaEl.style.color = 'var(--muted)';
-    deltaEl.textContent = 'لا توجد مبيعات اليوم بعد';
+    deltaEl.textContent = 'لا توجد مبيعات في ' + PERIOD_LABELS[period] + ' لحد دلوقتي';
   }
 
-  // أعلى عيار مبيعاً اليوم (حسب الوزن المباع)
+  // أعلى عيار مبيعاً في الفترة المختارة (حسب الوزن المباع)
   const karatWeights = {};
-  todayInvoices.forEach(inv => (inv.items||[]).forEach(it => {
+  curInvoices.forEach(inv => (inv.items||[]).forEach(it => {
     karatWeights[it.karat] = (karatWeights[it.karat]||0) + (it.netW||0);
   }));
   const topKaratEl = document.getElementById('kpiTopKarat');
   const topKaratEntry = Object.entries(karatWeights).sort((a,b)=>b[1]-a[1])[0];
   topKaratEl.textContent = topKaratEntry ? ('أعلى مبيعًا: عيار ' + topKaratEntry[0]) : 'لا توجد فواتير بعد';
 
-  renderRealChart(invoices);
-  renderSmartAlerts(inventory, goldsmiths, goldsmithTx);
-}
-loadRealKpis();
+  // شريط النطاق الزمني المعروض حالياً
+  const rangeLbl = document.getElementById('periodRangeLbl');
+  const fmtD = (t)=> new Date(t).toLocaleDateString('ar-EG',{day:'numeric',month:'short'});
+  rangeLbl.textContent = period === 'day'
+    ? 'اليوم — ' + fmtD(Date.now())
+    : 'من ' + fmtD(start) + ' إلى ' + fmtD(Date.now());
 
-/* ===== REAL 7-DAY SALES CHART (based on invoices) ===== */
-function renderRealChart(invoices){
-  const days = [];
+  renderRealChart(invoices, period);
+}
+
+/* ===== REAL SALES CHART — bars adapt to the selected period:
+   day → last 7 days, week → last 8 weeks, month → last 6 months ===== */
+function renderRealChart(invoices, period){
+  period = period || 'day';
   const labelsWrap = document.getElementById('chartLabels');
-  const dayNames = ['أحد','إثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'];
-  for(let i=6;i>=0;i--){
-    const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-i);
-    const next = new Date(d.getTime()+86400000);
-    const total = invoices.filter(inv=>inv.at>=d.getTime() && inv.at<next.getTime())
-      .reduce((s,inv)=>s+(inv.grand||0),0);
-    days.push({ label: dayNames[d.getDay()], total });
+  const bars = [];
+
+  if(period === 'day'){
+    const dayNames = ['أحد','إثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'];
+    for(let i=6;i>=0;i--){
+      const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-i);
+      const next = new Date(d.getTime()+86400000);
+      const total = invoices.filter(inv=>inv.at>=d.getTime() && inv.at<next.getTime())
+        .reduce((s,inv)=>s+(inv.grand||0),0);
+      bars.push({ label: dayNames[d.getDay()], total });
+    }
+  } else if(period === 'week'){
+    for(let i=7;i>=0;i--){
+      const end = new Date(); end.setHours(0,0,0,0); end.setDate(end.getDate() - i*7);
+      const start = new Date(end.getTime() - 6*86400000);
+      const total = invoices.filter(inv=>inv.at>=start.getTime() && inv.at<end.getTime()+86400000)
+        .reduce((s,inv)=>s+(inv.grand||0),0);
+      bars.push({ label: start.getDate()+'/'+(start.getMonth()+1), total });
+    }
+  } else { // month
+    const monthNames = ['ينا','فبر','مار','أبر','ماي','يون','يول','أغس','سبت','أكت','نوف','ديس'];
+    for(let i=5;i>=0;i--){
+      const d = new Date(); d.setDate(1); d.setHours(0,0,0,0); d.setMonth(d.getMonth()-i);
+      const next = new Date(d.getFullYear(), d.getMonth()+1, 1);
+      const total = invoices.filter(inv=>inv.at>=d.getTime() && inv.at<next.getTime())
+        .reduce((s,inv)=>s+(inv.grand||0),0);
+      bars.push({ label: monthNames[d.getMonth()], total });
+    }
   }
-  const max = Math.max(...days.map(d=>d.total), 1);
-  document.getElementById('chartBox').innerHTML = days.map(d=>
-    `<div class="bar" title="${fmtMoney(d.total)} ج.م" style="height:${Math.max(4,(d.total/max*100))}%"></div>`
+
+  const max = Math.max(...bars.map(b=>b.total), 1);
+  document.getElementById('chartBox').innerHTML = bars.map(b=>
+    `<div class="bar" title="${fmtMoney(b.total)} ج.م" style="height:${Math.max(4,(b.total/max*100))}%"></div>`
   ).join('');
-  labelsWrap.innerHTML = days.map(d=>`<span>${d.label}</span>`).join('');
+  labelsWrap.innerHTML = bars.map(b=>`<span>${b.label}</span>`).join('');
+
+  const chartTitle = document.getElementById('chartTitle');
+  if(chartTitle){
+    chartTitle.textContent = period === 'day' ? 'حركة المبيعات آخر 7 أيام'
+      : period === 'week' ? 'حركة المبيعات آخر 8 أسابيع'
+      : 'حركة المبيعات آخر 6 شهور';
+  }
 }
 
 /* ===== SMART ALERTS (derived from real data, not hardcoded) ===== */
@@ -605,7 +703,7 @@ if(window.HN_FSDB){
 /* ===== ticker: live prices (from karat calculator) + real counters ===== */
 function renderTicker(){
   const base = parseFloat(document.getElementById('basePrice').value) || 0;
-  const KS = [24,21,18,14];
+  const KS = [24,14];
   const invCount = (LIVE.inventory||[]).filter(i=>i.status==='available').length;
   const items = KS.map(k=>({ k:'عيار '+k, v:(base*(k/21)).toFixed(0)+' ج.م' }));
   items.push({ k:'عدد أصناف المخزون', v: invCount });
@@ -627,7 +725,7 @@ renderTicker();
    price24 = price21 * (24/21)
    Generalized for any karat: priceK = price21 * (K/21)
 */
-const KARATS = [24,21,18,14,12,9];
+const KARATS = [24,14,12,9];
 function renderKaratGrid(){
   const base = parseFloat(document.getElementById('basePrice').value) || 0;
   const grid = document.getElementById('karatGrid');
