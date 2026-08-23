@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>مجوهرات حسن نصار | المخزون · العملاء · الموردين · الخزنة · الصاغة</title>
+<title>مجوهرات حسن نصار | فاتورة بيع جديدة</title>
 <style>
   :root{
     --bg:#08080A; --liquid-glass: rgba(24,24,28,0.45); --glass-border: rgba(255,255,255,0.08);
@@ -19,9 +19,9 @@
                 radial-gradient(circle at 90% 20%, rgba(10,132,255,0.10), transparent 45%); }
   .glass{ background:var(--liquid-glass); backdrop-filter: blur(25px) saturate(140%); -webkit-backdrop-filter: blur(25px) saturate(140%);
     border:1px solid var(--glass-border); border-radius:20px; box-shadow:0 16px 50px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05); position:relative; }
-  .wrap{ position:relative; z-index:1; max-width:1180px; margin:0 auto; padding:20px; }
+  .wrap{ position:relative; z-index:1; max-width:1320px; margin:0 auto; padding:20px; }
 
-  .dbbar{ display:flex; align-items:center; justify-content:space-between; padding:14px 18px; margin-bottom:16px; }
+  .dbbar{ display:flex; align-items:center; justify-content:space-between; padding:14px 18px; margin-bottom:16px; flex-wrap:wrap; gap:10px; }
   .dbbar .status{ display:flex; align-items:center; gap:8px; font-size:12.5px; }
   .dot{ width:9px;height:9px;border-radius:50%; }
   .dot.ok{ background:var(--green); box-shadow:0 0 8px rgba(48,209,88,.7); }
@@ -34,6 +34,636 @@
   .btn-sm{ padding:7px 12px; font-size:12px; border-radius:9px; }
   .btn-danger{ background:rgba(255,105,97,0.14); color:#FF9791; border:1px solid rgba(255,105,97,0.3); }
 
+  .grid2{ display:grid; grid-template-columns:1fr 460px; gap:16px; align-items:start; }
+  .card{ padding:20px; }
+  .card h2{ font-size:14.5px; margin-bottom:14px; }
+  label{ font-size:12px; color:var(--muted); display:block; margin-bottom:6px; }
+  input,select,textarea{
+    width:100%; padding:11px 13px; border-radius:12px; margin-bottom:12px;
+    background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08);
+    color:var(--cream); font-size:13.5px; outline:none; transition:all .25s var(--ease);
+    font-family:inherit;
+  }
+  input:focus,select:focus,textarea:focus{ border-color:var(--blue); box-shadow:0 0 0 4px rgba(10,132,255,0.16); transform:scale(1.01); background:rgba(10,132,255,0.05); }
+
+  table{ width:100%; border-collapse:collapse; font-size:13px; }
+  thead th{ text-align:right; color:var(--muted); font-weight:600; font-size:11.5px; padding:8px 10px; border-bottom:1px solid rgba(255,255,255,0.08); }
+  tbody td{ padding:10px; border-bottom:1px solid rgba(255,255,255,0.05); }
+  tbody tr:hover{ background:rgba(255,255,255,0.02); }
+  .empty{ text-align:center; color:var(--muted); padding:30px; font-size:13px; }
+
+  .row{ display:flex; gap:10px; }
+  .row > *{ flex:1; }
+
+  .setup-gate{ display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+  .setup-card{ max-width:460px; width:100%; padding:34px; text-align:center; }
+  .setup-card .mark{ width:70px;height:70px;border-radius:20px; margin:0 auto 18px; background:linear-gradient(145deg,var(--gold-1),var(--gold-2)); display:flex;align-items:center;justify-content:center;font-weight:700;color:#151007;font-size:26px; }
+
+  #toast{ position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--liquid-glass); backdrop-filter:blur(20px); border:1px solid var(--glass-border);
+    border-radius:14px; padding:12px 20px; font-size:13px; opacity:0; pointer-events:none; transition:all .35s var(--ease); z-index:50; }
+  #toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  .totals-row{ display:flex; justify-content:space-between; padding:10px 0; font-size:13.5px; border-bottom:1px solid rgba(255,255,255,0.06); }
+  .totals-row b{ font-family:ui-monospace,Menlo,monospace; }
+  .totals-row.grand{ font-size:17px; padding-top:14px; color:var(--gold-1); }
+
+  /* ============ PRINTABLE INVOICE (mirrors the shop's paper invoice) ============ */
+  .inv-sheet{
+    background:#fff; color:#111; border-radius:14px; overflow:hidden;
+    font-family:"Segoe UI",Tahoma,Arial,sans-serif;
+  }
+  .inv-box{ border:3px solid #111; border-radius:10px; margin:10px; padding:18px 20px 14px; }
+  .inv-head{ display:flex; align-items:flex-start; justify-content:space-between; padding-bottom:12px; border-bottom:2px solid #111; margin-bottom:12px; }
+  .inv-head .brand-en{ font-weight:800; font-size:22px; letter-spacing:1px; }
+  .inv-head .brand-sub{ font-size:10.5px; color:#555; margin-top:2px; }
+  .inv-head .shop-ar{ text-align:center; font-weight:800; font-size:14.5px; line-height:1.6; }
+  .inv-head .seal{ width:64px;height:64px;border-radius:50%; border:2px solid #111; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; text-align:center; }
+
+  .inv-karats{ display:flex; justify-content:space-between; margin-bottom:12px; }
+  .inv-karat-pill{ border:2px solid #111; border-radius:20px; padding:6px 22px; font-weight:800; font-size:14px; }
+
+  .inv-title{ text-align:center; margin-bottom:14px; }
+  .inv-title .t{ font-weight:800; font-size:19px; }
+  .inv-title .no{ color:#c0392b; font-weight:800; font-size:16px; font-family:ui-monospace,Menlo,monospace; margin-top:3px; }
+
+  .inv-meta{ font-size:12.5px; margin-bottom:6px; display:flex; justify-content:space-between; border-bottom:1px dotted #999; padding-bottom:6px; }
+  .inv-meta b{ font-weight:700; }
+
+  .inv-table{ width:100%; border-collapse:collapse; margin-top:12px; font-size:12px; }
+  .inv-table th,.inv-table td{ border:1px solid #111; padding:6px 5px; text-align:center; }
+  .inv-table thead th{ background:#f2f2f2; font-weight:700; }
+  .inv-table .desc-col{ text-align:right; }
+  .inv-table tfoot td{ font-weight:800; background:#f7f7f7; }
+
+  .inv-footer{ display:flex; justify-content:space-between; align-items:flex-end; margin-top:22px; }
+  .inv-stamp{ width:110px;height:110px;border-radius:50%; border:2px solid #c0392b; color:#c0392b; display:flex; align-items:center; justify-content:center; text-align:center; font-size:9.5px; font-weight:700; line-height:1.5; }
+  .inv-sign{ text-align:left; font-size:12px; }
+  .inv-sign div{ margin-bottom:6px; }
+
+  .inv-tail{ text-align:center; font-size:9.5px; color:#333; border-top:1px solid #999; margin-top:14px; padding-top:8px; }
+  .inv-note{ text-align:center; font-size:9px; color:#888; margin-top:4px; }
+
+  @media print{
+    body *{ visibility:hidden; }
+    #printArea, #printArea *{ visibility:visible; }
+    #printArea{ position:absolute; top:0; left:0; width:100%; }
+    .inv-sheet{ border-radius:0; }
+  }
+
+  @media (max-width:1050px){ .grid2{ grid-template-columns:1fr; } }
+  /* ===== Hassan Nassar Quick Nav (floating) ===== */
+  .hn-qn{ position:fixed; top:16px; left:16px; z-index:999; }
+  .hn-qn-btn{ display:flex; align-items:center; gap:8px; padding:10px 16px; border-radius:100px; border:none; cursor:pointer;
+    background:var(--liquid-glass); backdrop-filter:blur(25px) saturate(140%); -webkit-backdrop-filter:blur(25px) saturate(140%);
+    border:1px solid var(--glass-border); color:var(--cream); font-size:12.5px; font-weight:700;
+    box-shadow:0 10px 30px rgba(0,0,0,0.4); transition:transform .18s var(--ease); }
+  .hn-qn-btn:hover{ transform:translateY(-2px); }
+  .hn-qn-btn:active{ transform:scale(.96); }
+  .hn-qn-dot{ width:8px; height:8px; border-radius:50%; background:var(--gold-1); box-shadow:0 0 8px var(--gold-1); }
+  .hn-qn-menu{ position:absolute; top:calc(100% + 8px); left:0; min-width:240px; padding:8px; border-radius:16px;
+    background:var(--liquid-glass); backdrop-filter:blur(25px) saturate(140%); -webkit-backdrop-filter:blur(25px) saturate(140%);
+    border:1px solid var(--glass-border); box-shadow:0 20px 50px rgba(0,0,0,0.5);
+    display:none; flex-direction:column; gap:2px; }
+  .hn-qn.open .hn-qn-menu{ display:flex; }
+  .hn-qn-menu a{ display:block; padding:10px 12px; border-radius:10px; color:var(--cream); text-decoration:none; font-size:13px; transition:background .15s; }
+  .hn-qn-menu a:hover{ background:rgba(255,255,255,0.06); color:var(--gold-1); }
+  @media(max-width:640px){ .hn-qn{ top:10px; left:10px; } .hn-qn-btn{ padding:9px 13px; font-size:11.5px; } }
+
+</style>
+
+  <!-- مكتبات فايربيس وملف أمان الترخيص -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="license-guard.js"></script>
+<script src="firestore-db.js"></script>
+
+  <!-- قراءة الباركود من الكاميرا -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+  <script src="camera-scan.js"></script>
+</head>
+<body>
+<div id="hnGlobalNav" style="display:flex;align-items:center;gap:2px;padding:9px 14px;background:#0c0c0e;border-bottom:1px solid rgba(255,255,255,0.08);overflow-x:auto;white-space:nowrap;position:sticky;top:0;z-index:9997;direction:rtl;font-family:inherit;">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:5px;text-decoration:none;color:#F5D060;font-weight:700;font-size:12.5px;padding:7px 12px;margin-left:8px;">🏠 الرئيسية</a>
+  <a href="hassan-nassar-jewelry-02-dashboard.html" class="hnNavLink">📊 الداشبورد</a>
+  <a href="hassan-nassar-jewelry-03-data-core.html" class="hnNavLink">📦 المخزون والخزنة</a>
+  <a href="hassan-nassar-jewelry-04-invoice.html" class="hnNavLink">🧾 الفواتير</a>
+  <a href="hassan-nassar-jewelry-05-barcode-reports.html" class="hnNavLink">🏷️ الباركود والتقارير</a>
+  <a href="hassan-nassar-jewelry-07-transactions.html" class="hnNavLink">🔄 الحركات</a>
+  <a href="hassan-nassar-jewelry-08-finance-final.html" class="hnNavLink">💵 الحسابات المالية</a>
+  <a href="hassan-nassar-jewelry-06-settings-users.html" class="hnNavLink">⚙️ الإعدادات</a>
+</div>
+<style>
+  .hnNavLink{ display:inline-flex; align-items:center; gap:5px; text-decoration:none; color:#B8B8BE; font-size:12.5px; padding:7px 12px; border-radius:10px; margin-left:2px; }
+  .hnNavLink:hover{ background:rgba(255,255,255,0.06); color:#F5F5F7; }
+  .hnNavLink.active{ background:rgba(212,175,55,0.15); color:#F5D060; font-weight:700; }
+</style>
+<script>
+(function(){
+  var page = location.pathname.split('/').pop();
+  document.querySelectorAll('.hnNavLink').forEach(function(a){
+    if(a.getAttribute('href') === page) a.classList.add('active');
+  });
+})();
+</script>
+
+<div class="hn-qn" id="hnQuickNav">
+  <button class="hn-qn-btn" onclick="document.getElementById('hnQuickNav').classList.toggle('open')" aria-label="القائمة">
+    <span class="hn-qn-dot"></span> القائمة
+  </button>
+  <div class="hn-qn-menu">
+    <a href="index.html">🏠 الرئيسية</a>
+    <a href="hassan-nassar-jewelry-02-dashboard.html">📈 لوحة التحكم</a>
+    <a href="hassan-nassar-jewelry-04-invoice.html">🧾 فاتورة بيع جديدة</a>
+    <a href="hassan-nassar-jewelry-03-data-core.html">📦 المخزون · العملاء · الموردين</a>
+    <a href="hassan-nassar-jewelry-05-barcode-reports.html">🖨️ الباركود والتقارير</a>
+    <a href="hassan-nassar-jewelry-06-settings-users.html">⚙️ الإعدادات والمستخدمين</a>
+    <a href="hassan-nassar-jewelry-07-transactions.html">♻️ الكسر والاسترجاع والحجز</a>
+    <a href="hassan-nassar-jewelry-08-finance-final.html">💵 المصروفات والمقاصة</a>
+  </div>
+</div>
+
+<div class="ambient"></div>
+<div id="toast"></div>
+
+<!-- ===== Optional local backup folder ===== -->
+<div class="setup-gate" id="gateScreen">
+  <div class="setup-card glass">
+    <div class="mark">HN</div>
+    <h1 style="font-size:19px;margin-bottom:8px;">جاري تحميل بيانات المحل...</h1>
+    <p style="color:var(--muted);font-size:13px;line-height:1.8;margin-bottom:22px;">
+      البيانات دلوقتي متزامنة لايف على السيرفر، ومش محتاجة أي خطوة اتصال.
+    </p>
+    <button class="btn btn-gold" style="width:100%;" onclick="DB.pickFolder().then(afterConnect)">📁 تحديد مجلد نسخة احتياطية (اختياري)</button>
+    <p style="color:var(--muted);font-size:11px;margin-top:14px;">يعمل بكامل قوته على Chrome / Edge. المتصفحات الأخرى تستخدم تخزينًا داخليًا محميًا بديلاً تلقائياً.</p>
+  </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div class="wrap" id="appScreen" style="display:none;">
+
+  <div class="dbbar glass">
+    <div class="status">
+      <div class="dot ok" id="dbDot"></div>
+      <span id="dbStatusText">متصل بالسحابة: —</span>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <span style="font-size:12.5px;color:var(--muted);">رقم الفاتورة التالي:</span>
+      <span style="font-family:ui-monospace,Menlo,monospace;color:var(--gold-1);font-weight:700;" id="nextInvNoBadge">—</span>
+    </div>
+  </div>
+
+  <div class="grid2">
+
+    <!-- =========== LEFT: BUILDER =========== -->
+    <div style="display:flex; flex-direction:column; gap:14px;">
+
+      <div class="card glass">
+        <h2>بيانات العميل</h2>
+        <div class="row">
+          <div>
+            <label>رقم الهاتف</label>
+            <input id="custPhone" placeholder="01xxxxxxxxx" oninput="lookupCustomer()">
+          </div>
+          <div>
+            <label>اسم العميل</label>
+            <input id="custName" placeholder="اسم العميل">
+          </div>
+        </div>
+        <div id="custFoundHint" style="display:none;color:var(--green);font-size:11.5px;margin:-6px 0 10px;">✅ تم إيجاد عميل مسجل مسبقاً — تم تعبئة بياناته</div>
+      </div>
+
+      <div class="card glass">
+        <h2>إضافة صنف للفاتورة</h2>
+        <label>اختر من المخزون (بالكود أو الاسم)</label>
+        <div style="display:flex; gap:8px;">
+          <input id="pickSearch" placeholder="اكتب كود أو اسم الصنف..." list="pickList" oninput="onPickSearch()" style="flex:1;">
+          <button type="button" class="btn btn-ghost" style="width:auto; padding:0 14px; margin-bottom:12px;" title="مسح الباركود بالكاميرا" onclick="scanInvoiceBarcode()">📷</button>
+        </div>
+        <datalist id="pickList"></datalist>
+
+        <div class="row">
+          <div>
+            <label>الصنف</label>
+            <input id="lineDesc" placeholder="مثال: حلق">
+          </div>
+          <div>
+            <label>العيار / المعدن</label>
+            <select id="lineKarat"></select>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>الوزن الصافي (جرام)</label>
+            <input id="lineWeight" type="number" step="0.001" placeholder="0.00">
+          </div>
+          <div>
+            <label>العدد</label>
+            <input id="lineQty" type="number" step="1" min="1" value="1">
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>سعر الفئة للجرام (سعر الذهب + المصنعية)</label>
+            <input id="lineCatPrice" type="number" step="0.01" placeholder="0.00">
+          </div>
+          <div>
+            <label>القيمة الإجمالية للسطر</label>
+            <input id="lineTotalPreview" type="text" disabled placeholder="0.00 ج.م">
+          </div>
+        </div>
+        <input type="hidden" id="lineInvId" value="">
+        <button class="btn btn-gold" style="width:100%;" onclick="addLine()">➕ إضافة السطر للفاتورة</button>
+        <p style="color:var(--muted);font-size:11px;margin-top:10px;">سعر الفئة بيتحسب تلقائي من سعر الجرام الحالي + مصنعية البيع بتاعة الصنف، وتقدر تعدله يدوي قبل الإضافة.</p>
+      </div>
+
+      <div class="card glass">
+        <h2>عناصر الفاتورة</h2>
+        <table>
+          <thead><tr><th>البيان</th><th>العيار</th><th>الوزن</th><th>العدد</th><th>سعر الفئة</th><th>القيمة</th><th></th></tr></thead>
+          <tbody id="cartTableBody"></tbody>
+        </table>
+        <div class="empty" id="cartEmpty">لسه معملتش أي سطر في الفاتورة</div>
+
+        <div style="margin-top:14px;">
+          <div class="totals-row"><span>إجمالي الوزن</span><b id="totWeight">0.00 جم</b></div>
+          <div class="totals-row"><span>خصم (اختياري)</span><input id="lineDiscount" type="number" step="0.01" value="0" style="width:140px;margin:0;padding:6px 10px;" oninput="renderCart()"></div>
+          <div class="totals-row grand"><span>الإجمالي المطلوب</span><b id="totGrand">0.00 ج.م</b></div>
+        </div>
+
+        <div class="row" style="margin-top:14px;">
+          <button class="btn btn-ghost" style="width:100%;" onclick="resetInvoice()">🗑️ إفراغ الفاتورة</button>
+          <button class="btn btn-gold" style="width:100%;" onclick="finalizeInvoice()">💾 حفظ الفاتورة وخصم المخزون</button>
+        </div>
+        <button class="btn btn-ghost" style="width:100%;margin-top:8px;" onclick="window.print()">🖨️ طباعة</button>
+      </div>
+
+    </div>
+
+    <!-- =========== RIGHT: LIVE PRINT PREVIEW =========== -->
+    <div id="printArea">
+      <div class="inv-sheet glass" style="padding:0;">
+        <div class="inv-box">
+
+          <div class="inv-head">
+            <div>
+              <div class="brand-en" id="pvBrandEn">EGYPT GOLD</div>
+              <div class="brand-sub">FOR GOLD MANUFACTURING &amp; JEWELRY</div>
+            </div>
+            <div class="shop-ar" id="pvShopAr">مصوغات ومجوهرات<br>حسن ومصطفى نصار</div>
+            <div class="seal">مصنع<br>معتمد</div>
+          </div>
+
+          <div class="inv-karats" id="pvKarats"></div>
+
+          <div class="inv-title">
+            <div class="t">فاتورة</div>
+            <div class="no" id="pvInvNo">٠٠٠٠٠٠١</div>
+          </div>
+
+          <div class="inv-meta"><span id="pvDate">—</span><b>: التاريخ</b></div>
+          <div class="inv-meta"><span id="pvCustomer">—</span><b>: مطلوب من السيد</b></div>
+          <div class="inv-meta"><span id="pvPhone">—</span><b>: رقم التليفون</b></div>
+
+          <table class="inv-table">
+            <thead>
+              <tr><th>البيان</th><th>العيار</th><th>الوزن (جم)</th><th>العدد</th><th>سعر الفئة</th><th>القيمة (ج.م)</th></tr>
+            </thead>
+            <tbody id="pvItemsBody">
+              <tr><td colspan="6" style="color:#999;">لا توجد أصناف مضافة بعد</td></tr>
+            </tbody>
+            <tfoot id="pvFoot"></tfoot>
+          </table>
+
+          <div class="inv-footer">
+            <div class="inv-stamp">البيع بسعر<br>المصنع<br>مصوغات ومجوهرات<br>حسن ومصطفى نصار</div>
+            <div class="inv-sign">
+              <div>المستلم</div>
+              <div>Name : <span id="pvSignName">—</span></div>
+              <div>Sig : ....................</div>
+            </div>
+          </div>
+
+          <div class="inv-tail" id="pvTail">العنوان: — &nbsp;—&nbsp; هاتف: —</div>
+          <div class="inv-note">الأسعار الموضحة أعلاه سارية وقت إصدار هذه الفاتورة فقط، وقابلة للتغيير حسب حركة سعر الذهب العالمي وسعر الصرف دون إشعار مسبق.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   HELPERS
+========================================================= */
+function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3400); }
+function fmt2(n){ return (Number(n)||0).toLocaleString('ar-EG',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function isSilver(k){ return k >= 800; }
+function karatLabel(k){ return isSilver(k) ? ('فضة ' + k) : ('عيار ' + k); }
+const KARATS = [24,14,12,9,999,925,800];
+
+/* =========================================================
+   BOOT
+========================================================= */
+let DATA = { inventory:[], customers:[], safe:[], invoices:[], settings:{} };
+let BASE_PRICE_21 = 3850;
+let CART = []; // { desc, karat, weight, qty, catPrice, total, invId(optional link to stock) }
+let matchedCustomer = null;
+let matchedStockItem = null;
+
+function pricePerGram(k){ return +(BASE_PRICE_21*(k/21)).toFixed(2); }
+
+async function afterConnect(){
+  document.getElementById('gateScreen').style.display = 'none';
+  document.getElementById('appScreen').style.display = 'block';
+  document.getElementById('dbStatusText').textContent = 'متصل بالسحابة — بيانات لايف';
+  document.getElementById('dbDot').className = 'dot ok';
+
+  DATA.inventory = await DB.read('inventory', []);
+  DATA.customers = await DB.read('customers', []);
+  DATA.safe = await DB.read('safe', []);
+  DATA.invoices = await DB.read('invoices', []);
+  DATA.settings = await DB.read('settings', {});
+  if(DATA.settings.basePrice21) BASE_PRICE_21 = DATA.settings.basePrice21;
+
+  document.getElementById('pvShopAr').innerHTML = (DATA.settings.shopName || 'مجوهرات حسن نصار').replace(/\s+/g,' ');
+  document.getElementById('pvTail').textContent =
+    'العنوان: ' + (DATA.settings.shopAddress || '—') + '   —   هاتف: ' + (DATA.settings.shopPhone || '—');
+
+  populateKaratSelect();
+  populatePickList();
+  updateNextInvoiceNo();
+  renderCart();
+}
+
+(async function boot(){
+  const ok = await DB.tryAutoConnect();
+  if(ok) afterConnect();
+})();
+
+function populateKaratSelect(){
+  const sel = document.getElementById('lineKarat');
+  sel.innerHTML = KARATS.map(k=>`<option value="${k}">${karatLabel(k)}</option>`).join('');
+  sel.addEventListener('change', suggestCatPrice);
+  suggestCatPrice();
+}
+function suggestCatPrice(){
+  const k = parseInt(document.getElementById('lineKarat').value,10);
+  if(!k) return;
+  const base = isSilver(k) ? 0 : pricePerGram(k);
+  document.getElementById('lineCatPrice').value = base || '';
+}
+
+/* =========================================================
+   CUSTOMER LOOKUP (reuses shared 'customers' collection)
+========================================================= */
+function lookupCustomer(){
+  const phone = document.getElementById('custPhone').value.trim();
+  const hint = document.getElementById('custFoundHint');
+  if(phone.length < 6){ matchedCustomer=null; hint.style.display='none'; return; }
+  const found = DATA.customers.find(c=>c.phone===phone);
+  if(found){
+    matchedCustomer = found;
+    document.getElementById('custName').value = found.name || '';
+    hint.style.display='block';
+  } else {
+    matchedCustomer = null; hint.style.display='none';
+  }
+  renderPreview();
+}
+document.getElementById('custName').addEventListener('input', renderPreview);
+
+/* =========================================================
+   ITEM PICKER — search inventory by code/name, or type manually
+========================================================= */
+function populatePickList(){
+  const dl = document.getElementById('pickList');
+  dl.innerHTML = DATA.inventory.filter(i=>i.status==='available').map(i=>
+    `<option value="${i.code} — ${i.name}"></option>`
+  ).join('');
+}
+function onPickSearch(){
+  const q = document.getElementById('pickSearch').value.trim();
+  const code = q.split(' — ')[0].trim();
+  const item = DATA.inventory.find(i=>i.code===code && i.status==='available');
+  if(!item){ matchedStockItem = null; return; }
+  matchedStockItem = item;
+  document.getElementById('lineDesc').value = item.name;
+  document.getElementById('lineKarat').value = item.karat;
+  document.getElementById('lineWeight').value = item.netW;
+  document.getElementById('lineQty').value = 1;
+  const cat = isSilver(item.karat) ? (item.feeRetail||0) : (pricePerGram(item.karat) + (item.feeRetail||0));
+  document.getElementById('lineCatPrice').value = cat.toFixed(2);
+  document.getElementById('lineInvId').value = item.id;
+  previewLineTotal();
+  showToast('تم اختيار صنف من المخزون: ' + item.name);
+}
+function scanInvoiceBarcode(){
+  if(typeof startBarcodeScan !== 'function'){ showToast('مكتبة قراءة الباركود لم يتم تحميلها'); return; }
+  startBarcodeScan((code)=>{
+    document.getElementById('pickSearch').value = code;
+    const item = DATA.inventory.find(i=>i.code===code && i.status==='available');
+    if(item){ onPickSearch.call(null); document.getElementById('pickSearch').value = code+' — '+item.name; onPickSearch(); }
+    else showToast('لم يتم العثور على قطعة متاحة بهذا الباركود: ' + code);
+  }, {title:'مسح باركود صنف للفاتورة'});
+}
+
+['lineWeight','lineQty','lineCatPrice'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', previewLineTotal);
+});
+function previewLineTotal(){
+  const w = parseFloat(document.getElementById('lineWeight').value)||0;
+  const qty = parseInt(document.getElementById('lineQty').value)||0;
+  const cat = parseFloat(document.getElementById('lineCatPrice').value)||0;
+  document.getElementById('lineTotalPreview').value = fmt2(w*qty*cat) + ' ج.م';
+}
+
+function addLine(){
+  const desc = document.getElementById('lineDesc').value.trim();
+  const karat = parseInt(document.getElementById('lineKarat').value,10);
+  const weight = parseFloat(document.getElementById('lineWeight').value)||0;
+  const qty = parseInt(document.getElementById('lineQty').value)||1;
+  const catPrice = parseFloat(document.getElementById('lineCatPrice').value)||0;
+  const invId = document.getElementById('lineInvId').value || null;
+
+  if(!desc || !weight || !catPrice){ showToast('أدخل بيان الصنف والوزن وسعر الفئة على الأقل'); return; }
+
+  CART.push({ id:'ln_'+Date.now(), desc, karat, weight, qty, catPrice, total: weight*qty*catPrice, invId });
+
+  ['lineDesc','lineWeight','lineCatPrice','lineTotalPreview'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('lineQty').value = 1;
+  document.getElementById('lineInvId').value = '';
+  document.getElementById('pickSearch').value = '';
+  matchedStockItem = null;
+  renderCart();
+  showToast('تمت إضافة السطر للفاتورة');
+}
+function removeLine(id){ CART = CART.filter(l=>l.id!==id); renderCart(); }
+
+function renderCart(){
+  const body = document.getElementById('cartTableBody');
+  document.getElementById('cartEmpty').style.display = CART.length ? 'none' : 'block';
+  body.innerHTML = CART.map(l=>`
+    <tr>
+      <td>${l.desc}</td>
+      <td>${karatLabel(l.karat)}</td>
+      <td>${l.weight.toFixed(2)} جم</td>
+      <td>${l.qty}</td>
+      <td>${l.catPrice.toFixed(2)}</td>
+      <td>${fmt2(l.total)} ج.م</td>
+      <td><button class="btn btn-danger btn-sm" onclick="removeLine('${l.id}')">حذف</button></td>
+    </tr>
+  `).join('');
+
+  const totWeight = CART.reduce((s,l)=>s+l.weight*l.qty,0);
+  const subTotal = CART.reduce((s,l)=>s+l.total,0);
+  const discount = parseFloat(document.getElementById('lineDiscount').value)||0;
+  const grand = Math.max(0, subTotal - discount);
+
+  document.getElementById('totWeight').textContent = totWeight.toFixed(2) + ' جم';
+  document.getElementById('totGrand').textContent = fmt2(grand) + ' ج.م';
+
+  renderPreview();
+}
+
+function resetInvoice(){
+  if(CART.length && !confirm('هل تريد إفراغ كل أصناف الفاتورة الحالية؟')) return;
+  CART = [];
+  document.getElementById('lineDiscount').value = 0;
+  renderCart();
+}
+
+/* =========================================================
+   LIVE PRINT PREVIEW — mirrors the shop's paper invoice
+========================================================= */
+function updateNextInvoiceNo(){
+  const next = (DATA.invoices.length + 1);
+  const padded = String(next).padStart(7,'0');
+  document.getElementById('nextInvNoBadge').textContent = '#' + padded;
+  document.getElementById('pvInvNo').textContent = arabicDigits(padded);
+}
+function arabicDigits(s){
+  const map = {'0':'٠','1':'١','2':'٢','3':'٣','4':'٤','5':'٥','6':'٦','7':'٧','8':'٨','9':'٩'};
+  return String(s).split('').map(c=>map[c]!==undefined?map[c]:c).join('');
+}
+
+function renderPreview(){
+  const karatsUsed = [...new Set(CART.map(l=>l.karat))];
+  document.getElementById('pvKarats').innerHTML = karatsUsed.length
+    ? karatsUsed.map(k=>`<div class="inv-karat-pill">${karatLabel(k)}</div>`).join('')
+    : `<div class="inv-karat-pill" style="opacity:.4;">—</div>`;
+
+  document.getElementById('pvDate').textContent = new Date().toLocaleDateString('ar-EG',{year:'numeric',month:'2-digit',day:'2-digit'});
+  const custName = document.getElementById('custName').value.trim() || '—';
+  const custPhone = document.getElementById('custPhone').value.trim() || '—';
+  document.getElementById('pvCustomer').textContent = custName;
+  document.getElementById('pvPhone').textContent = custPhone;
+  document.getElementById('pvSignName').textContent = custName;
+
+  const body = document.getElementById('pvItemsBody');
+  body.innerHTML = CART.length ? CART.map(l=>`
+    <tr>
+      <td class="desc-col">${l.desc}</td>
+      <td>${karatLabel(l.karat)}</td>
+      <td>${l.weight.toFixed(2)}</td>
+      <td>${l.qty}</td>
+      <td>${l.catPrice.toFixed(2)}</td>
+      <td>${fmt2(l.total)}</td>
+    </tr>
+  `).join('') : '<tr><td colspan="6" style="color:#999;">لا توجد أصناف مضافة بعد</td></tr>';
+
+  const totWeight = CART.reduce((s,l)=>s+l.weight*l.qty,0);
+  const subTotal = CART.reduce((s,l)=>s+l.total,0);
+  const discount = parseFloat(document.getElementById('lineDiscount').value)||0;
+  const grand = Math.max(0, subTotal - discount);
+
+  const foot = document.getElementById('pvFoot');
+  let rows = `<tr><td class="desc-col">الإجمالي</td><td></td><td>${totWeight.toFixed(2)}</td><td></td><td></td><td>${fmt2(subTotal)}</td></tr>`;
+  if(discount > 0){
+    rows += `<tr><td class="desc-col">خصم</td><td></td><td></td><td></td><td></td><td>-${fmt2(discount)}</td></tr>`;
+    rows += `<tr><td class="desc-col">الصافي</td><td></td><td></td><td></td><td></td><td>${fmt2(grand)}</td></tr>`;
+  }
+  foot.innerHTML = rows;
+}
+
+/* =========================================================
+   FINALIZE — saves the invoice, deducts stock, credits the safe
+========================================================= */
+async function finalizeInvoice(){
+  if(!CART.length){ showToast('أضف صنف واحد على الأقل قبل الحفظ'); return; }
+  const custName = document.getElementById('custName').value.trim();
+  const custPhone = document.getElementById('custPhone').value.trim();
+  if(!custName){ showToast('أدخل اسم العميل قبل حفظ الفاتورة'); return; }
+
+  const totWeight = CART.reduce((s,l)=>s+l.weight*l.qty,0);
+  const subTotal = CART.reduce((s,l)=>s+l.total,0);
+  const discount = parseFloat(document.getElementById('lineDiscount').value)||0;
+  const grand = Math.max(0, subTotal - discount);
+  const invNo = DATA.invoices.length + 1;
+
+  const invoice = {
+    id: 'inv_' + Date.now(),
+    no: invNo,
+    at: Date.now(),
+    customer: { name: custName, phone: custPhone },
+    items: CART.map(l=>({ desc:l.desc, karat:l.karat, netW:l.weight, qty:l.qty, catPrice:l.catPrice, total:l.total })),
+    totalWeight: totWeight,
+    subtotal: subTotal,
+    discount, grand
+  };
+
+  try{
+    // 1) save the invoice
+    const nextInvoices = DATA.invoices.concat(invoice);
+    await DB.write('invoices', nextInvoices);
+    DATA.invoices = nextInvoices;
+
+    // 2) mark linked stock items as sold (only lines that came from real inventory)
+    let invChanged = false;
+    CART.forEach(l=>{
+      if(!l.invId) return;
+      const idx = DATA.inventory.findIndex(i=>i.id===l.invId);
+      if(idx>-1 && DATA.inventory[idx].status==='available'){
+        DATA.inventory[idx] = Object.assign({}, DATA.inventory[idx], { status:'sold', soldAt:Date.now(), invoiceId:invoice.id });
+        invChanged = true;
+      }
+    });
+    if(invChanged) await DB.write('inventory', DATA.inventory);
+
+    // 3) credit the safe with the sale amount
+    const safeTx = { id:'sfx_'+Date.now(), type:'income', amount: grand, desc:'فاتورة بيع #'+invNo+' — '+custName, at: Date.now() };
+    const nextSafe = DATA.safe.concat(safeTx);
+    await DB.write('safe', nextSafe);
+    DATA.safe = nextSafe;
+
+    // 4) upsert the customer record
+    const existing = DATA.customers.find(c=>c.phone===custPhone);
+    if(custPhone){
+      if(existing){ existing.name = custName; }
+      else { DATA.customers.push({ id:'cus_'+Date.now(), name:custName, phone:custPhone, notes:'', addedAt:Date.now() }); }
+      await DB.write('customers', DATA.customers);
+    }
+
+    showToast('تم حفظ الفاتورة رقم ' + invNo + ' وخصم المخزون بنجاح ✅');
+    setTimeout(()=>window.print(), 400);
+
+    CART = [];
+    document.getElementById('lineDiscount').value = 0;
+    document.getElementById('custPhone').value = '';
+    document.getElementById('custName').value = '';
+    populatePickList();
+    updateNextInvoiceNo();
+    renderCart();
+  }catch(err){
+    console.error('Invoice save failed:', err);
+    showToast('تعذر حفظ الفاتورة الآن — تأكد من الإنترنت وحاول مرة أخرى');
+  }
+}
+</script>
+</body>
+</html>
   .tabs{ display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
   .tab{ padding:10px 18px; border-radius:12px; font-size:13.5px; cursor:pointer; color:var(--muted);
     background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); transition:all .2s var(--ease); }
