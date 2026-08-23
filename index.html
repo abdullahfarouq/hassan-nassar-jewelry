@@ -376,7 +376,7 @@ async function afterConnect(){
   const safe = await DB.read('safe', []);
   const balance = safe.reduce((s,t)=> s + ((t.type==='income'||t.type==='capital_in') ? t.amount : -t.amount), 0);
 
-  const karats = [24,21,18,14];
+  const karats = [24,14];
   const items = karats.map(k=>({k, v:(base*(k/21)).toFixed(0)}));
   const track = document.getElementById('tickerTrack');
   let html='';
