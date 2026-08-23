@@ -286,7 +286,7 @@ function showToast(msg){ const t=document.getElementById('toast'); t.textContent
 
 let DATA = { safe:[], goldsmiths:[], goldsmithTx:[], opex:[], loss:[], ledger:[], suppliers:[], inventory:[], settings:{} };
 let BASE_PRICE_21 = 3850;
-const KARATS = [24,21,18,14];
+const KARATS = [24,14];
 function pricePerGram(k){ return +(BASE_PRICE_21*(k/21)).toFixed(2); }
 
 async function afterConnect(){
