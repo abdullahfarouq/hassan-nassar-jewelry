@@ -314,7 +314,7 @@
           <option value="expense">💸 صرف / مصروف يدوي</option>
         </select>
         <label>المبلغ</label><input id="safeAmount" type="number" min="0.01" step="0.01" placeholder="0.00">
-        <label>البيان</label><input id="safeDesc" placeholder="مثال: رأس مال إضافي / سحب نقدي / إيداع">
+        <label>البيان (مطلوب)</label><input id="safeDesc" placeholder="مثال: رأس مال إضافي / سحب نقدي / إيداع">
         <button class="btn btn-gold" style="width:100%;" onclick="addSafeTx()">➕ تسجيل الحركة</button>
         <div style="margin-top:12px;padding:10px 12px;border:1px solid rgba(10,132,255,.18);background:rgba(10,132,255,.06);border-radius:12px;color:var(--muted);font-size:11.5px;line-height:1.7;">تقدر تزود أو تسحب من الخزنة مباشرة من هنا بدون إنشاء فاتورة. كل حركة تُحفظ فوراً على السحابة وتظهر في سجل الخزنة.</div>
       </div>
@@ -634,9 +634,20 @@ function safeTypeLabel(type){
 }
 async function addSafeTx(){
   const type = document.getElementById('safeType').value;
-  const amount = Number.parseFloat(document.getElementById('safeAmount').value);
+  const amountRaw = document.getElementById('safeAmount').value;
+  const amount = Number.parseFloat(amountRaw);
   const desc = document.getElementById('safeDesc').value.trim();
-  if(!Number.isFinite(amount) || amount<=0 || !desc){ showToast('أدخل مبلغاً صحيحاً والبيان'); return; }
+
+  if(amountRaw.trim()==='' || !Number.isFinite(amount) || amount<=0){
+    showToast('⚠️ أدخل مبلغاً صحيحاً أكبر من صفر في خانة "المبلغ"');
+    document.getElementById('safeAmount').focus();
+    return;
+  }
+  if(!desc){
+    showToast('⚠️ خانة "البيان" لازم تتكتب — اكتب سبب الحركة (مثال: رأس مال إضافي)');
+    document.getElementById('safeDesc').focus();
+    return;
+  }
   if(type==='capital_out' && getSafeBalance() < amount){ showToast('لا يمكن سحب مبلغ أكبر من رصيد الخزنة الحالي'); return; }
 
   const now = Date.now();
