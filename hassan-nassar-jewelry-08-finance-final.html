@@ -381,16 +381,21 @@ async function saveLoss(){
   const lossPct = given ? (loss/given*100) : 0;
   const within = lossPct <= accepted;
 
-  DATA.goldsmithTx.push({ id:'gtx_'+Date.now(), goldsmithId:gsId, type:'deduct', grams:loss, note:'هالك تصنيع ('+lossPct.toFixed(2)+'%)', at:Date.now() });
-  await DB.write('goldsmith_tx', DATA.goldsmithTx);
+  const nextGoldsmithTx = DATA.goldsmithTx.concat({ id:'gtx_'+Date.now(), goldsmithId:gsId, type:'deduct', grams:loss, note:'هالك تصنيع ('+lossPct.toFixed(2)+'%)', at:Date.now() });
+  const nextLoss = DATA.loss.concat({ id:'loss_'+Date.now(), goldsmithId:gsId, given, received, loss, lossPct, within, at:Date.now() });
 
-  DATA.loss.push({ id:'loss_'+Date.now(), goldsmithId:gsId, given, received, loss, lossPct, within, at:Date.now() });
-  await DB.write('workshop_loss', DATA.loss);
+  try{
+    await DB.write('goldsmith_tx', nextGoldsmithTx); DATA.goldsmithTx = nextGoldsmithTx;
+    await DB.write('workshop_loss', nextLoss); DATA.loss = nextLoss;
 
-  ['lossGiven','lossReceived'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('lossResult').innerHTML='';
-  renderLoss();
-  showToast('تم تسجيل الفرق على حساب الصائغ تلقائياً');
+    ['lossGiven','lossReceived'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('lossResult').innerHTML='';
+    renderLoss();
+    showToast('تم تسجيل الفرق على حساب الصائغ تلقائياً');
+  }catch(err){
+    console.error('Workshop loss save failed:', err);
+    showToast('⚠️ لم يتم حفظ الهالك على السحابة — تأكد من الإنترنت وحاول مرة أخرى.');
+  }
 }
 function renderLoss(){
   document.getElementById('lossEmpty').style.display = DATA.loss.length?'none':'block';
@@ -408,11 +413,17 @@ async function addLedger(){
   const type = document.getElementById('ledgerType').value;
   const amount = parseFloat(document.getElementById('ledgerAmount').value)||0;
   if(!name || !amount){ showToast('أدخل الاسم والقيمة'); return; }
-  DATA.ledger.push({ id:'ldg_'+Date.now(), name, type, amount, at:Date.now() });
-  await DB.write('credit_ledger', DATA.ledger);
-  document.getElementById('ledgerName').value=''; document.getElementById('ledgerAmount').value='';
-  renderLedger();
-  showToast('تم تسجيل الحركة في كشف الحساب');
+  const next = DATA.ledger.concat({ id:'ldg_'+Date.now(), name, type, amount, at:Date.now() });
+  try{
+    await DB.write('credit_ledger', next);
+    DATA.ledger = next;
+    document.getElementById('ledgerName').value=''; document.getElementById('ledgerAmount').value='';
+    renderLedger();
+    showToast('تم تسجيل الحركة في كشف الحساب');
+  }catch(err){
+    console.error('Ledger save failed:', err);
+    showToast('⚠️ لم يتم حفظ الحركة على السحابة — تأكد من الإنترنت وحاول مرة أخرى.');
+  }
 }
 function renderLedger(){
   document.getElementById('ledgerEmpty').style.display = DATA.ledger.length?'none':'block';
