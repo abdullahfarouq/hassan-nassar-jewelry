@@ -213,7 +213,7 @@
     <div class="grid2">
       <div class="card glass">
         <h2>إضافة صنف جديد</h2>
-        <label>اسم الصنف</label><input id="invName" placeholder="مثال: خاتم عيار 21">
+        <label>اسم الصنف</label><input id="invName" placeholder="مثال: خاتم عيار 24">
         <label>كود الصنف</label>
         <div style="display:flex; gap:8px;">
           <input id="invCode" placeholder="HN000000001" style="flex:1;">
@@ -222,9 +222,7 @@
         <label>المعدن والعيار</label>
         <select id="invKarat">
           <optgroup label="🟡 ذهب">
-            <option value="24">عيار 24</option>
-            <option value="21" selected>عيار 21</option>
-            <option value="18">عيار 18</option>
+            <option value="24" selected>عيار 24</option>
             <option value="14">عيار 14</option>
             <option value="12">عيار 12</option>
             <option value="9">عيار 9</option>
@@ -426,10 +424,10 @@ document.querySelectorAll('.tab').forEach(t=>{
 /* =========================================================
    INVENTORY
 ========================================================= */
-const KARATS = [24,21,18,14,12,9,999,925,800];
+const KARATS = [24,14,12,9,999,925,800];
 function isSilver(k){ return k >= 800; }
 function karatLabel(k){ return isSilver(k) ? ('فضة ' + k) : ('عيار ' + k); }
-let activeKarat = 21;
+let activeKarat = 24;
 function renderKaratTabs(){
   const wrap = document.getElementById('karatTabs');
   wrap.innerHTML = KARATS.map(k=>`<div class="karat-pill ${k===activeKarat?'active':''}" style="${isSilver(k)?'border-color:rgba(200,200,210,0.35);':''}" onclick="setKarat(${k})">${karatLabel(k)}</div>`).join('');
@@ -474,21 +472,32 @@ async function addInventoryItem(){
   if(!name || !code || !netW){ showToast('أدخل اسم الصنف والكود والوزن الصافي على الأقل'); return; }
   if(DATA.inventory.some(i=>i.code === code)){ showToast('هذا الكود مستخدم من قبل لقطعة أخرى'); return; }
 
-  DATA.inventory.push({
+  const newItem = {
     id: 'inv_' + Date.now(), name, code, karat, netW, grossW, feeRetail, feeWholesale,
     supplierId, goldsmithId, status:'available', addedAt: Date.now()
-  });
-  await DB.write('inventory', DATA.inventory);
+  };
+  const nextInventory = DATA.inventory.concat(newItem);
 
-  // goldsmith balance auto-updates when a new piece is linked to him
-  if(goldsmithId){
-    DATA.goldsmithTx.push({ id:'gtx_'+Date.now(), goldsmithId, type:'add', grams:netW, note:'قطعة جديدة: '+name, at:Date.now() });
-    await DB.write('goldsmith_tx', DATA.goldsmithTx);
+  try{
+    // Save to Firestore FIRST — only commit to the in-memory/rendered state
+    // once the cloud write is actually confirmed, so a failed save can never
+    // look successful (silent failures were the root cause reported here).
+    await DB.write('inventory', nextInventory);
+    DATA.inventory = nextInventory;
+
+    if(goldsmithId){
+      const nextGoldsmithTx = DATA.goldsmithTx.concat({ id:'gtx_'+Date.now(), goldsmithId, type:'add', grams:netW, note:'قطعة جديدة: '+name, at:Date.now() });
+      await DB.write('goldsmith_tx', nextGoldsmithTx);
+      DATA.goldsmithTx = nextGoldsmithTx;
+    }
+
+    ['invName','invCode','invNetWeight','invGrossWeight','invFeeRetail','invFeeWholesale'].forEach(id=>document.getElementById(id).value='');
+    renderInventory(); renderGoldsmiths();
+    showToast('تمت إضافة الصنف للمخزون وحُفظ تلقائياً');
+  }catch(err){
+    console.error('Inventory save failed:', err);
+    showToast('⚠️ لم يتم حفظ الصنف على السحابة — تأكد من الإنترنت وتسجيل الدخول ثم حاول مرة أخرى.');
   }
-
-  ['invName','invCode','invNetWeight','invGrossWeight','invFeeRetail','invFeeWholesale'].forEach(id=>document.getElementById(id).value='');
-  renderInventory(); renderGoldsmiths();
-  showToast('تمت إضافة الصنف للمخزون وحُفظ تلقائياً');
 }
 
 function renderInventory(){
@@ -510,10 +519,18 @@ function renderInventory(){
   }).join('');
 }
 async function deleteInventory(id){
-  DATA.inventory = DATA.inventory.filter(i=>i.id!==id);
-  await DB.write('inventory', DATA.inventory);
-  renderInventory();
+  const prev = DATA.inventory;
+  const next = DATA.inventory.filter(i=>i.id!==id);
+  try{
+    await DB.write('inventory', next);
+    DATA.inventory = next;
+    renderInventory();
+  }catch(err){
+    console.error('Inventory delete failed:', err);
+    showToast('⚠️ لم يتم حذف الصنف من السحابة — حاول مرة أخرى.');
+  }
 }
+
 
 /* =========================================================
    CUSTOMERS
@@ -529,16 +546,23 @@ async function addCustomer(){
   const notes = document.getElementById('custNotes').value.trim();
   if(!phone || !name){ showToast('أدخل الاسم ورقم الهاتف'); return; }
 
-  const existing = DATA.customers.find(c=>c.phone===phone);
+  const next = DATA.customers.map(c=>c);
+  const existing = next.find(c=>c.phone===phone);
   if(existing){
     existing.name = name; existing.notes = notes;
   } else {
-    DATA.customers.push({ id:'cus_'+Date.now(), name, phone, notes, addedAt: Date.now() });
+    next.push({ id:'cus_'+Date.now(), name, phone, notes, addedAt: Date.now() });
   }
-  await DB.write('customers', DATA.customers);
-  document.getElementById('custPhone').value=''; document.getElementById('custName').value=''; document.getElementById('custNotes').value='';
-  renderCustomers();
-  showToast('تم حفظ بيانات العميل تلقائياً');
+  try{
+    await DB.write('customers', next);
+    DATA.customers = next;
+    document.getElementById('custPhone').value=''; document.getElementById('custName').value=''; document.getElementById('custNotes').value='';
+    renderCustomers();
+    showToast('تم حفظ بيانات العميل تلقائياً');
+  }catch(err){
+    console.error('Customer save failed:', err);
+    showToast('⚠️ لم يتم حفظ بيانات العميل على السحابة — تأكد من الإنترنت وحاول مرة أخرى.');
+  }
 }
 function renderCustomers(){
   document.getElementById('custCount').textContent = `(${DATA.customers.length})`;
@@ -571,16 +595,23 @@ async function addSupplier(){
   const notes = document.getElementById('supNotes').value.trim();
   if(!company){ showToast('أدخل اسم الشركة على الأقل'); return; }
 
-  const existing = phone ? DATA.suppliers.find(s=>s.phone===phone) : null;
+  const next = DATA.suppliers.map(s=>s);
+  const existing = phone ? next.find(s=>s.phone===phone) : null;
   if(existing){
     existing.company = company; existing.contact = contact; existing.address = address; existing.notes = notes;
   } else {
-    DATA.suppliers.push({ id:'sup_'+Date.now(), company, contact, phone, address, notes, addedAt: Date.now() });
+    next.push({ id:'sup_'+Date.now(), company, contact, phone, address, notes, addedAt: Date.now() });
   }
-  await DB.write('suppliers', DATA.suppliers);
-  ['supCompany','supContact','supPhone','supAddress','supNotes'].forEach(id=>document.getElementById(id).value='');
-  refreshSupplierGoldsmithSelects(); renderSuppliers();
-  showToast(existing ? 'تم تحديث بيانات المورد الموجود' : 'تمت إضافة المورد الجديد');
+  try{
+    await DB.write('suppliers', next);
+    DATA.suppliers = next;
+    ['supCompany','supContact','supPhone','supAddress','supNotes'].forEach(id=>document.getElementById(id).value='');
+    refreshSupplierGoldsmithSelects(); renderSuppliers();
+    showToast(existing ? 'تم تحديث بيانات المورد الموجود' : 'تمت إضافة المورد الجديد');
+  }catch(err){
+    console.error('Supplier save failed:', err);
+    showToast('⚠️ لم يتم حفظ بيانات المورد على السحابة — تأكد من الإنترنت وحاول مرة أخرى.');
+  }
 }
 function renderSuppliers(){
   document.getElementById('supCount').textContent = `(${DATA.suppliers.length})`;
@@ -651,11 +682,17 @@ async function addGoldsmith(){
   const name = document.getElementById('gsName').value.trim();
   const phone = document.getElementById('gsPhone').value.trim();
   if(!name){ showToast('أدخل اسم الصائغ'); return; }
-  DATA.goldsmiths.push({ id:'gs_'+Date.now(), name, phone, addedAt: Date.now() });
-  await DB.write('goldsmiths', DATA.goldsmiths);
-  document.getElementById('gsName').value=''; document.getElementById('gsPhone').value='';
-  refreshSupplierGoldsmithSelects(); renderGoldsmiths();
-  showToast('تمت إضافة الصائغ');
+  const next = DATA.goldsmiths.concat({ id:'gs_'+Date.now(), name, phone, addedAt: Date.now() });
+  try{
+    await DB.write('goldsmiths', next);
+    DATA.goldsmiths = next;
+    document.getElementById('gsName').value=''; document.getElementById('gsPhone').value='';
+    refreshSupplierGoldsmithSelects(); renderGoldsmiths();
+    showToast('تمت إضافة الصائغ');
+  }catch(err){
+    console.error('Goldsmith save failed:', err);
+    showToast('⚠️ لم يتم حفظ بيانات الصائغ على السحابة — تأكد من الإنترنت وحاول مرة أخرى.');
+  }
 }
 async function addGoldsmithTx(){
   const goldsmithId = document.getElementById('gsTxWho').value;
@@ -664,11 +701,17 @@ async function addGoldsmithTx(){
   const note = document.getElementById('gsTxNote').value.trim();
   if(!goldsmithId || !grams){ showToast('اختر الصائغ وأدخل الوزن'); return; }
 
-  DATA.goldsmithTx.push({ id:'gtx_'+Date.now(), goldsmithId, type, grams, note, at: Date.now() });
-  await DB.write('goldsmith_tx', DATA.goldsmithTx);
-  document.getElementById('gsTxGrams').value=''; document.getElementById('gsTxNote').value='';
-  renderGoldsmiths();
-  showToast('تم تسجيل حركة الرصيد');
+  const next = DATA.goldsmithTx.concat({ id:'gtx_'+Date.now(), goldsmithId, type, grams, note, at: Date.now() });
+  try{
+    await DB.write('goldsmith_tx', next);
+    DATA.goldsmithTx = next;
+    document.getElementById('gsTxGrams').value=''; document.getElementById('gsTxNote').value='';
+    renderGoldsmiths();
+    showToast('تم تسجيل حركة الرصيد');
+  }catch(err){
+    console.error('Goldsmith transaction save failed:', err);
+    showToast('⚠️ لم يتم حفظ حركة الصائغ على السحابة — تأكد من الإنترنت وحاول مرة أخرى.');
+  }
 }
 function goldsmithBalance(id){
   return DATA.goldsmithTx.filter(t=>t.goldsmithId===id).reduce((sum,t)=>{
