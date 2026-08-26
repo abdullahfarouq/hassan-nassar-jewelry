@@ -215,7 +215,7 @@
             <option value="status">حسب الحالة (متاح/مباع)</option>
           </select>
         </div>
-        <div><label>العيار</label><select id="fltKarat"><option value="">الكل</option><option>24</option><option>21</option><option>18</option><option>14</option><option>12</option><option>9</option></select></div>
+        <div><label>العيار</label><select id="fltKarat"><option value="">الكل</option><option>24</option><option>14</option><option>12</option><option>9</option><option>999</option><option>925</option><option>800</option></select></div>
         <div><label>المورد</label><select id="fltSupplier"><option value="">الكل</option></select></div>
         <div><label>الحالة</label><select id="fltStatus"><option value="">الكل</option><option value="available">متاح</option><option value="sold">مباع</option></select></div>
       </div>
@@ -297,16 +297,23 @@ function pad(n){ return n.toString().padStart(9,'0'); }
 async function generateSequential(){
   const count = parseInt(document.getElementById('bcCount').value,10) || 0;
   if(count<=0){ showToast('أدخل عدد صحيح'); return; }
+  const startCounter = DATA.barcodeCounter;
   const codes = [];
   for(let i=1;i<=count;i++){
     DATA.barcodeCounter++;
     codes.push('HN' + pad(DATA.barcodeCounter));
   }
-  const settings = await DB.read('settings', {});
-  settings.barcodeCounter = DATA.barcodeCounter;
-  await DB.write('settings', settings);
-  renderLabels(codes);
-  showToast(`تم توليد ${count} باركود جديد ومسلسل`);
+  try{
+    const settings = await DB.read('settings', {});
+    settings.barcodeCounter = DATA.barcodeCounter;
+    await DB.write('settings', settings);
+    renderLabels(codes);
+    showToast(`تم توليد ${count} باركود جديد ومسلسل`);
+  }catch(err){
+    DATA.barcodeCounter = startCounter;
+    console.error('Barcode counter save failed:', err);
+    showToast('⚠️ لم يتم حفظ عداد الباركود على السحابة — تأكد من الإنترنت وحاول مرة أخرى.');
+  }
 }
 
 function renderLabels(codes){
