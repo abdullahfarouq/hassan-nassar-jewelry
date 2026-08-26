@@ -161,7 +161,7 @@
         <h2>استلام ذهب كسر من العميل</h2>
         <label>الوزن القائم (كما هو)</label><input id="kasrGross" type="number" step="0.01" oninput="calcKasr()">
         <label>خصم الفصوص/الأوساخ (جرام)</label><input id="kasrDeduct" type="number" step="0.01" value="0" oninput="calcKasr()">
-        <label>العيار</label><select id="kasrKarat" onchange="calcKasr()"><option>24</option><option selected>21</option><option>18</option><option>14</option><option>9</option></select>
+        <label>العيار</label><select id="kasrKarat" onchange="calcKasr()"><option selected>24</option><option>14</option><option>12</option><option>9</option></select>
         <div class="calc-box">
           <div class="calc-row"><span>الوزن الصافي</span><b id="kasrNet">0.00 جم</b></div>
           <div class="calc-row"><span>سعر الجرام (بالعيار المحدد)</span><b id="kasrPrice">0.00 ج.م</b></div>
@@ -318,20 +318,24 @@ async function saveKasr(){
   const custPhone = document.getElementById('kasrCustPhone').value.trim();
   if(!net){ showToast('أدخل الوزن'); return; }
 
-  DATA.inventory.push({ id:'inv_'+Date.now(), name:'ذهب مستعمل (كسر) - عيار '+karat, code:'KASR'+Date.now().toString().slice(-8),
+  const nextInventory = DATA.inventory.concat({ id:'inv_'+Date.now(), name:'ذهب مستعمل (كسر) - عيار '+karat, code:'KASR'+Date.now().toString().slice(-8),
     karat, netW:net, grossW:gross, feeRetail:0, feeWholesale:0, supplierId:'', goldsmithId:'', status:'available',
     category:'old_gold', addedAt:Date.now() });
-  await DB.write('inventory', DATA.inventory);
+  const nextSafe = DATA.safe.concat({ id:'sfx_'+Date.now(), type:'expense', amount:value, desc:'شراء ذهب كسر من: '+(custName||'عميل'), at:Date.now() });
+  const nextKasr = DATA.kasr.concat({ id:'kasr_'+Date.now(), custName, custPhone, karat, net, gross, value, at:Date.now() });
 
-  DATA.safe.push({ id:'sfx_'+Date.now(), type:'expense', amount:value, desc:'شراء ذهب كسر من: '+(custName||'عميل'), at:Date.now() });
-  await DB.write('safe', DATA.safe);
+  try{
+    await DB.write('inventory', nextInventory); DATA.inventory = nextInventory;
+    await DB.write('safe', nextSafe); DATA.safe = nextSafe;
+    await DB.write('old_gold', nextKasr); DATA.kasr = nextKasr;
 
-  DATA.kasr.push({ id:'kasr_'+Date.now(), custName, custPhone, karat, net, gross, value, at:Date.now() });
-  await DB.write('old_gold', DATA.kasr);
-
-  ['kasrGross','kasrDeduct','kasrCustName','kasrCustPhone'].forEach(id=>document.getElementById(id).value='');
-  calcKasr(); renderKasr();
-  showToast('تم ترحيل الكسر للمخزون وصرف القيمة من الخزنة');
+    ['kasrGross','kasrDeduct','kasrCustName','kasrCustPhone'].forEach(id=>document.getElementById(id).value='');
+    calcKasr(); renderKasr();
+    showToast('تم ترحيل الكسر للمخزون وصرف القيمة من الخزنة');
+  }catch(err){
+    console.error('Kasr save failed:', err);
+    showToast('⚠️ لم يتم حفظ عملية الكسر على السحابة — تأكد من الإنترنت وحاول مرة أخرى.');
+  }
 }
 function renderKasr(){
   document.getElementById('kasrEmpty').style.display = DATA.kasr.length?'none':'block';
@@ -364,21 +368,27 @@ async function confirmReturn(){
   if(!retSelected) return;
   const price = pricePerGram(retSelected.karat);
   const refund = +(retSelected.netW*price).toFixed(2);
+  const prevStatus = retSelected.status;
 
   retSelected.status = 'available'; // back to stock
-  await DB.write('inventory', DATA.inventory);
+  const nextSafe = DATA.safe.concat({ id:'sfx_'+Date.now(), type:'expense', amount:refund, desc:'استرجاع قطعة: '+retSelected.name, at:Date.now() });
+  const nextReturns = DATA.returns.concat({ id:'ret_'+Date.now(), itemName:retSelected.name, code:retSelected.code, refund, at:Date.now() });
 
-  DATA.safe.push({ id:'sfx_'+Date.now(), type:'expense', amount:refund, desc:'استرجاع قطعة: '+retSelected.name, at:Date.now() });
-  await DB.write('safe', DATA.safe);
+  try{
+    await DB.write('inventory', DATA.inventory);
+    await DB.write('safe', nextSafe); DATA.safe = nextSafe;
+    await DB.write('returns', nextReturns); DATA.returns = nextReturns;
 
-  DATA.returns.push({ id:'ret_'+Date.now(), itemName:retSelected.name, code:retSelected.code, refund, at:Date.now() });
-  await DB.write('returns', DATA.returns);
-
-  document.getElementById('retSearch').value=''; document.getElementById('retResults').innerHTML='';
-  document.getElementById('retCalcBox').style.display='none';
-  retSelected=null;
-  renderReturns();
-  showToast('تم الاسترجاع وخصم المبلغ من الخزنة وإعادة القطعة للمخزون');
+    document.getElementById('retSearch').value=''; document.getElementById('retResults').innerHTML='';
+    document.getElementById('retCalcBox').style.display='none';
+    retSelected=null;
+    renderReturns();
+    showToast('تم الاسترجاع وخصم المبلغ من الخزنة وإعادة القطعة للمخزون');
+  }catch(err){
+    retSelected.status = prevStatus;
+    console.error('Return save failed:', err);
+    showToast('⚠️ لم يتم حفظ عملية الاسترجاع على السحابة — تأكد من الإنترنت وحاول مرة أخرى.');
+  }
 }
 function renderReturns(){
   document.getElementById('retEmpty').style.display = DATA.returns.length?'none':'block';
@@ -410,33 +420,48 @@ async function saveLayaway(){
   const lockPrice = document.getElementById('layLockPrice').checked;
   const date = document.getElementById('layDate').value;
   if(!custName || !deposit){ showToast('أدخل اسم العميل ومبلغ العربون'); return; }
+  const prevStatus = laySelected.status;
 
   laySelected.status = 'reserved';
-  await DB.write('inventory', DATA.inventory);
-
-  DATA.safe.push({ id:'sfx_'+Date.now(), type:'income', amount:deposit, desc:'عربون حجز: '+laySelected.name, at:Date.now() });
-  await DB.write('safe', DATA.safe);
-
+  const nextSafe = DATA.safe.concat({ id:'sfx_'+Date.now(), type:'income', amount:deposit, desc:'عربون حجز: '+laySelected.name, at:Date.now() });
   const lockedPrice = lockPrice ? pricePerGram(laySelected.karat) : null;
-  DATA.layaway.push({ id:'lay_'+Date.now(), itemId:laySelected.id, itemName:laySelected.name, custName, custPhone, deposit, lockedPrice, deliveryDate:date, status:'reserved', at:Date.now() });
-  await DB.write('layaway', DATA.layaway);
+  const nextLayaway = DATA.layaway.concat({ id:'lay_'+Date.now(), itemId:laySelected.id, itemName:laySelected.name, custName, custPhone, deposit, lockedPrice, deliveryDate:date, status:'reserved', at:Date.now() });
 
-  ['layCustName','layCustPhone','layDeposit','layDate'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('layLockPrice').checked=false;
-  laySelected=null; document.getElementById('laySelectedBox').style.display='none';
-  document.getElementById('layResults').innerHTML=''; document.getElementById('laySearch').value='';
-  renderLayaway();
-  showToast('تم تأكيد الحجز والقطعة محجوزة الآن من المخزون');
+  try{
+    await DB.write('inventory', DATA.inventory);
+    await DB.write('safe', nextSafe); DATA.safe = nextSafe;
+    await DB.write('layaway', nextLayaway); DATA.layaway = nextLayaway;
+
+    ['layCustName','layCustPhone','layDeposit','layDate'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('layLockPrice').checked=false;
+    laySelected=null; document.getElementById('laySelectedBox').style.display='none';
+    document.getElementById('layResults').innerHTML=''; document.getElementById('laySearch').value='';
+    renderLayaway();
+    showToast('تم تأكيد الحجز والقطعة محجوزة الآن من المخزون');
+  }catch(err){
+    laySelected.status = prevStatus;
+    console.error('Layaway save failed:', err);
+    showToast('⚠️ لم يتم حفظ الحجز على السحابة — تأكد من الإنترنت وحاول مرة أخرى.');
+  }
 }
 async function completeLayaway(id){
   const lay = DATA.layaway.find(l=>l.id===id);
   const item = DATA.inventory.find(i=>i.id===lay.itemId);
+  const prevItemStatus = item ? item.status : null;
+  const prevLayStatus = lay.status;
   if(item) item.status = 'sold';
   lay.status = 'completed';
-  await DB.write('inventory', DATA.inventory);
-  await DB.write('layaway', DATA.layaway);
-  renderLayaway();
-  showToast('تم تسليم القطعة نهائياً للعميل');
+  try{
+    await DB.write('inventory', DATA.inventory);
+    await DB.write('layaway', DATA.layaway);
+    renderLayaway();
+    showToast('تم تسليم القطعة نهائياً للعميل');
+  }catch(err){
+    if(item) item.status = prevItemStatus;
+    lay.status = prevLayStatus;
+    console.error('Layaway completion failed:', err);
+    showToast('⚠️ لم يتم حفظ تسليم القطعة على السحابة — تأكد من الإنترنت وحاول مرة أخرى.');
+  }
 }
 function renderLayaway(){
   document.getElementById('layEmpty').style.display = DATA.layaway.length?'none':'block';
@@ -462,26 +487,39 @@ async function saveRepair(){
   const deposit = parseFloat(document.getElementById('repDeposit').value)||0;
   if(!custName || !desc){ showToast('أدخل اسم العميل ووصف الطلب'); return; }
 
-  if(deposit>0){
-    DATA.safe.push({ id:'sfx_'+Date.now(), type:'income', amount:deposit, desc:'عربون تفصيل/صيانة: '+custName, at:Date.now() });
-    await DB.write('safe', DATA.safe);
-  }
-  DATA.repairs.push({ id:'rep_'+Date.now(), custName, custPhone, desc, weight, workshop, date, deposit, status:'received', at:Date.now() });
-  await DB.write('repairs', DATA.repairs);
+  const nextSafe = deposit>0
+    ? DATA.safe.concat({ id:'sfx_'+Date.now(), type:'income', amount:deposit, desc:'عربون تفصيل/صيانة: '+custName, at:Date.now() })
+    : DATA.safe;
+  const nextRepairs = DATA.repairs.concat({ id:'rep_'+Date.now(), custName, custPhone, desc, weight, workshop, date, deposit, status:'received', at:Date.now() });
 
-  ['repCustName','repCustPhone','repDesc','repWeight','repWorkshop','repDate'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('repDeposit').value='0';
-  renderRepairs(); renderWorkshopList();
-  showToast('تم تسجيل طلب التفصيل/الصيانة');
+  try{
+    if(deposit>0){ await DB.write('safe', nextSafe); DATA.safe = nextSafe; }
+    await DB.write('repairs', nextRepairs); DATA.repairs = nextRepairs;
+
+    ['repCustName','repCustPhone','repDesc','repWeight','repWorkshop','repDate'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('repDeposit').value='0';
+    renderRepairs(); renderWorkshopList();
+    showToast('تم تسجيل طلب التفصيل/الصيانة');
+  }catch(err){
+    console.error('Repair save failed:', err);
+    showToast('⚠️ لم يتم حفظ طلب التفصيل/الصيانة على السحابة — تأكد من الإنترنت وحاول مرة أخرى.');
+  }
 }
 const REP_STATUSES = ['received','workshop','ready','delivered'];
 const REP_LABELS = {received:'تم الاستلام', workshop:'في الورشة', ready:'جاهز للتسليم', delivered:'تم التسليم'};
 async function advanceRepair(id){
   const r = DATA.repairs.find(x=>x.id===id);
   const idx = REP_STATUSES.indexOf(r.status);
+  const prevStatus = r.status;
   if(idx < REP_STATUSES.length-1) r.status = REP_STATUSES[idx+1];
-  await DB.write('repairs', DATA.repairs);
-  renderRepairs();
+  try{
+    await DB.write('repairs', DATA.repairs);
+    renderRepairs();
+  }catch(err){
+    r.status = prevStatus;
+    console.error('Repair status update failed:', err);
+    showToast('⚠️ لم يتم حفظ حالة الطلب على السحابة — حاول مرة أخرى.');
+  }
 }
 function renderRepairs(){
   document.getElementById('repEmpty').style.display = DATA.repairs.length?'none':'block';
