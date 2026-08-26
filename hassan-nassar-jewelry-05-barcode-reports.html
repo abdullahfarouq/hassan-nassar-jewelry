@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>مجوهرات حسن نصار | الباركود · التقارير والجرد</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/JsBarcode/3.11.5/JsBarcode.all.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js"></script>
 <style>
   :root{
     --bg:#08080A; --liquid-glass: rgba(24,24,28,0.45); --glass-border: rgba(255,255,255,0.08);
@@ -327,7 +327,10 @@ function renderLabels(codes){
     </div>`).join('');
   codes.forEach(code=>{
     try{ JsBarcode(`.bc-${code}`, code, { format:'CODE128', displayValue:false, height:34, margin:0 }); }
-    catch(e){ /* library not loaded (offline) — code text still shown below the box */ }
+    catch(e){
+      console.error('JsBarcode draw failed:', e);
+      showToast('⚠️ مكتبة رسم الباركود لم يتم تحميلها (تأكد من الإنترنت وأعد فتح الصفحة) — رقم الكود ظاهر تحت المربع رغم ذلك');
+    }
   });
 }
 
