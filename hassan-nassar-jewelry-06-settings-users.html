@@ -334,14 +334,22 @@ document.querySelectorAll('.tab').forEach(t=>{
 
 /* ===== GENERAL SETTINGS ===== */
 async function saveGeneral(){
-  SETTINGS.shopName = document.getElementById('setShopName').value.trim() || SHOP_NAME;
-  SETTINGS.branch = document.getElementById('setBranch').value.trim();
-  SETTINGS.shopPhone = document.getElementById('setShopPhone').value.trim();
-  SETTINGS.shopAddress = document.getElementById('setShopAddress').value.trim();
-  SETTINGS.taxNo = document.getElementById('setTaxNo').value.trim();
-  await DB.write('settings', SETTINGS);
-  await logAudit('edit', 'تعديل بيانات المحل (الاسم/الفرع)');
-  showToast('تم حفظ بيانات المحل');
+  const next = Object.assign({}, SETTINGS, {
+    shopName: document.getElementById('setShopName').value.trim() || SHOP_NAME,
+    branch: document.getElementById('setBranch').value.trim(),
+    shopPhone: document.getElementById('setShopPhone').value.trim(),
+    shopAddress: document.getElementById('setShopAddress').value.trim(),
+    taxNo: document.getElementById('setTaxNo').value.trim()
+  });
+  try{
+    await DB.write('settings', next);
+    SETTINGS = next;
+    await logAudit('edit', 'تعديل بيانات المحل (الاسم/الفرع)');
+    showToast('تم حفظ بيانات المحل');
+  }catch(err){
+    console.error('Shop settings save failed:', err);
+    showToast('⚠️ لم يتم حفظ بيانات المحل على السحابة — تأكد من الإنترنت وحاول مرة أخرى.');
+  }
 }
 
 function previewKarats(){
@@ -352,11 +360,17 @@ function previewKarats(){
   }).join('');
 }
 async function saveGoldPrice(){
-  SETTINGS.basePrice21 = parseFloat(document.getElementById('setBasePrice').value) || 0;
-  await DB.write('settings', SETTINGS);
-  await logAudit('edit', `تحديث سعر جرام عيار 21 إلى ${SETTINGS.basePrice21} ج.م`);
-  await broadcastPublicPrices();
-  showToast('تم حفظ السعر — سيُقرأ تلقائياً من كل الشاشات الأخرى وموقع البورتفوليو');
+  const next = Object.assign({}, SETTINGS, { basePrice21: parseFloat(document.getElementById('setBasePrice').value) || 0 });
+  try{
+    await DB.write('settings', next);
+    SETTINGS = next;
+    await logAudit('edit', `تحديث سعر جرام عيار 21 إلى ${SETTINGS.basePrice21} ج.م`);
+    await broadcastPublicPrices();
+    showToast('تم حفظ السعر — سيُقرأ تلقائياً من كل الشاشات الأخرى وموقع البورتفوليو');
+  }catch(err){
+    console.error('Gold price save failed:', err);
+    showToast('⚠️ لم يتم حفظ السعر على السحابة — تأكد من الإنترنت وحاول مرة أخرى.');
+  }
 }
 
 async function saveSilverPrices(){
@@ -365,10 +379,15 @@ async function saveSilverPrices(){
     p925: parseFloat(document.getElementById('setSilver925').value) || 0,
     p800: parseFloat(document.getElementById('setSilver800').value) || 0
   };
-  await DB.write('silver_prices', prices);
-  await logAudit('edit', `تحديث أسعار الفضة (999: ${prices.p999} / 925: ${prices.p925} / 800: ${prices.p800})`);
-  await broadcastPublicPrices();
-  showToast('تم حفظ أسعار الفضة — ستُقرأ تلقائياً من المخزون والفواتير وموقع البورتفوليو');
+  try{
+    await DB.write('silver_prices', prices);
+    await logAudit('edit', `تحديث أسعار الفضة (999: ${prices.p999} / 925: ${prices.p925} / 800: ${prices.p800})`);
+    await broadcastPublicPrices();
+    showToast('تم حفظ أسعار الفضة — ستُقرأ تلقائياً من المخزون والفواتير وموقع البورتفوليو');
+  }catch(err){
+    console.error('Silver price save failed:', err);
+    showToast('⚠️ لم يتم حفظ أسعار الفضة على السحابة — تأكد من الإنترنت وحاول مرة أخرى.');
+  }
 }
 
 /* =========================================================
@@ -437,19 +456,31 @@ async function addUser(){
   const perms = Array.from(document.querySelectorAll('#permPreview input[type=checkbox]'))
     .filter(c=>c.checked).map(c=>c.dataset.key);
 
-  USERS.push({ id:'usr_'+Date.now(), name, login, role, perms, addedAt: Date.now() });
-  await DB.write('users', USERS);
-  await logAudit('create', `إضافة مستخدم جديد: ${name} (${role})`);
-  document.getElementById('usrName').value=''; document.getElementById('usrLogin').value='';
-  renderUsers();
-  showToast('تمت إضافة المستخدم وصلاحياته');
+  const next = USERS.concat({ id:'usr_'+Date.now(), name, login, role, perms, addedAt: Date.now() });
+  try{
+    await DB.write('users', next);
+    USERS = next;
+    await logAudit('create', `إضافة مستخدم جديد: ${name} (${role})`);
+    document.getElementById('usrName').value=''; document.getElementById('usrLogin').value='';
+    renderUsers();
+    showToast('تمت إضافة المستخدم وصلاحياته');
+  }catch(err){
+    console.error('User save failed:', err);
+    showToast('⚠️ لم يتم حفظ المستخدم على السحابة — تأكد من الإنترنت وحاول مرة أخرى.');
+  }
 }
 async function deleteUser(id){
   const u = USERS.find(x=>x.id===id);
-  USERS = USERS.filter(x=>x.id!==id);
-  await DB.write('users', USERS);
-  await logAudit('delete', `حذف المستخدم: ${u?u.name:id}`);
-  renderUsers();
+  const next = USERS.filter(x=>x.id!==id);
+  try{
+    await DB.write('users', next);
+    USERS = next;
+    await logAudit('delete', `حذف المستخدم: ${u?u.name:id}`);
+    renderUsers();
+  }catch(err){
+    console.error('User delete failed:', err);
+    showToast('⚠️ لم يتم حذف المستخدم من السحابة — حاول مرة أخرى.');
+  }
 }
 function renderUsers(){
   document.getElementById('usersEmpty').style.display = USERS.length ? 'none' : 'block';
@@ -502,7 +533,13 @@ async function confirmWipeData(){
   checked.forEach(cb => cb.value.split(',').forEach(k => keys.push(k.trim())));
 
   for(const key of keys){
-    await DB.write(key, []);
+    try{
+      await DB.write(key, []);
+    }catch(err){
+      console.error('Wipe failed for key:', key, err);
+      showToast('⚠️ توقف المسح — فشل حذف قسم "'+key+'" على السحابة. تأكد من الإنترنت وحاول مرة أخرى.');
+      return;
+    }
   }
 
   // reset in-memory audit log state if it was part of the wipe, then log the wipe itself
