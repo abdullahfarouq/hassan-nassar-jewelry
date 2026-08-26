@@ -325,8 +325,10 @@ const OPEX_LABELS = {rent:'إيجار',electricity:'كهرباء',maintenance:'�
 async function addOpex(){
   const cat = document.getElementById('opexCat').value;
   const desc = document.getElementById('opexDesc').value.trim();
-  const amount = parseFloat(document.getElementById('opexAmount').value)||0;
-  if(!desc || !amount){ showToast('أدخل البيان والمبلغ'); return; }
+  const amountRaw = document.getElementById('opexAmount').value;
+  const amount = parseFloat(amountRaw)||0;
+  if(!desc){ showToast('⚠️ خانة "البيان" لازم تتكتب'); document.getElementById('opexDesc').focus(); return; }
+  if(amountRaw.trim()==='' || amount<=0){ showToast('⚠️ أدخل مبلغاً صحيحاً أكبر من صفر'); document.getElementById('opexAmount').focus(); return; }
 
   const opexTx = { id:'opx_'+Date.now(), cat, desc, amount, at:Date.now() };
   const safeTx = { id:'sfx_'+Date.now(), type:'expense', amount, desc:'['+OPEX_LABELS[cat]+'] '+desc, at:Date.now() };
