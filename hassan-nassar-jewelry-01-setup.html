@@ -329,7 +329,7 @@
         <div class="kpi-card glass">
           <span class="lbl">فواتير اليوم</span>
           <span class="val">27 فاتورة</span>
-          <span class="delta" style="color:var(--gold-1);">أعلى مبيعًا: عيار 21</span>
+          <span class="delta" style="color:var(--gold-1);">أعلى مبيعًا: عيار 24</span>
         </div>
       </div>
 
@@ -383,7 +383,7 @@
             </div>
             <div class="alert-item">
               <div class="alert-dot warn"></div>
-              <div class="t">مخزون عيار 18 وصل للحد الأدنى (82 جم)</div>
+              <div class="t">مخزون عيار 12 وصل للحد الأدنى (82 جم)</div>
               <div class="time">قبل ساعة</div>
             </div>
             <div class="alert-item">
@@ -408,7 +408,7 @@
 <!-- ===== SPOTLIGHT COMMAND PALETTE ===== -->
 <div id="spotlightOverlay">
   <div class="spotlight-box">
-    <input id="spotlightInput" placeholder="اكتب أمرًا... مثال: فاتورة جديدة، رقم هاتف عميل، جرد عيار 21" autocomplete="off">
+    <input id="spotlightInput" placeholder="اكتب أمرًا... مثال: فاتورة جديدة، رقم هاتف عميل، جرد عيار 24" autocomplete="off">
     <div class="spotlight-hint">اضغط Esc للإغلاق &nbsp;·&nbsp; Ctrl/Cmd + K لفتح شريط الأوامر في أي وقت</div>
   </div>
 </div>
@@ -417,9 +417,9 @@
 /* ===== ticker data (duplicated once for seamless loop) ===== */
 const tickItems = [
   {k:'عيار 24', v:'٤٤٠٠ ج.م', chip:'up', chipv:'+0.6%'},
-  {k:'عيار 21', v:'٣٨٥٠ ج.م', chip:'up', chipv:'+0.6%'},
-  {k:'عيار 18', v:'٣٣٠٠ ج.م', chip:'down', chipv:'-0.2%'},
   {k:'عيار 14', v:'٢٥٦٧ ج.م', chip:'up', chipv:'+0.6%'},
+  {k:'عيار 12', v:'٢٢٠٠ ج.م', chip:'down', chipv:'-0.2%'},
+  {k:'عيار 9', v:'١٦٥٠ ج.م', chip:'up', chipv:'+0.6%'},
   {k:'حركة المخزون اليوم', v:'٣١ عملية'},
   {k:'الفرع', v:'الفرع الرئيسي'},
   {k:'المستخدم', v:'حسن نصار'},
@@ -452,7 +452,7 @@ let SETTINGS = { basePrice21: 3850 };
    price24 = price21 * (24/21)
    Generalized for any karat: priceK = price21 * (K/21)
 */
-const KARATS = [24,21,18,14,12,9];
+const KARATS = [24,14,12,9];
 function renderKaratGrid(){
   const base = parseFloat(document.getElementById('basePrice').value) || 0;
   const grid = document.getElementById('karatGrid');
@@ -466,8 +466,14 @@ document.getElementById('basePrice').addEventListener('change', async ()=>{
   // Persist to settings.json so the invoice, reports, and every other
   // module read this exact same manually-entered price — never a separate number.
   if(!DB.connected) return;
-  SETTINGS.basePrice21 = parseFloat(document.getElementById('basePrice').value) || 0;
-  await DB.write('settings', SETTINGS);
+  const nextSettings = Object.assign({}, SETTINGS, { basePrice21: parseFloat(document.getElementById('basePrice').value) || 0 });
+  try{
+    await DB.write('settings', nextSettings);
+    SETTINGS = nextSettings;
+  }catch(err){
+    console.error('Setup price save failed:', err);
+    showToast ? showToast('⚠️ لم يتم حفظ السعر على السحابة — تأكد من الإنترنت وحاول مرة أخرى.') : alert('لم يتم حفظ السعر على السحابة — تأكد من الإنترنت وحاول مرة أخرى.');
+  }
 });
 renderKaratGrid();
 
