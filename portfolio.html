@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مصوغات ومجوهرات حسن ومصطفى نصار — لوحة أسعار الذهب اليوم</title>
+<meta name="description" content="مصوغات ومجوهرات حسن ومصطفى نصار — لتصنيع الذهب والمجوهرات، السويس. أسعار الذهب والفضة لحظية.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Aref+Ruqaa:wght@400;700&family=Tajawal:wght@300;400;500;700&family=Cormorant+Garamond:ital,wght@0,500;1,500&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14100b; --panel:#1c160f; --panel-2:#221b12;
+    --brass:#c6a15b; --brass-bright:#e8c983; --brass-dim: rgba(198,161,91,0.5);
+    --parchment:#efe6d2; --muted:#a1937a; --hairline: rgba(198,161,91,0.25);
+    --garnet:#7a2b39; --garnet-bright:#a8465a;
+    --ease: cubic-bezier(.22,.61,.36,1);
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    background:
+      radial-gradient(ellipse at 50% -10%, rgba(198,161,91,0.10), transparent 55%),
+      radial-gradient(ellipse at 85% 110%, rgba(122,43,57,0.12), transparent 50%),
+      var(--ink);
+    color:var(--parchment);
+    font-family:'Tajawal', sans-serif;
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+  @media (prefers-reduced-motion: reduce){ *{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; } }
+
+  /* ---------- texture ---------- */
+  .grain{ position:fixed; inset:0; pointer-events:none; z-index:1; opacity:.05; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+  .wrap{ position:relative; z-index:2; max-width:960px; margin:0 auto; padding:56px 22px 40px; }
+
+  /* ---------- topline ---------- */
+  .topline{ display:flex; align-items:center; justify-content:space-between; margin-bottom:46px; font-family:'Cormorant Garamond', serif; font-style:italic; letter-spacing:2px; color:var(--muted); font-size:13px; }
+  .topline .liveDot{ width:7px; height:7px; border-radius:50%; background:var(--brass); display:inline-block; margin-left:6px; box-shadow:0 0 8px var(--brass); animation:pulse 2.4s infinite; }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.35;} }
+
+  /* ---------- hero wordmark ---------- */
+  .hero{ text-align:center; margin-bottom:54px; }
+  .hero .est{ font-family:'Cormorant Garamond', serif; font-style:italic; letter-spacing:5px; text-transform:uppercase; color:var(--muted); font-size:12px; margin-bottom:18px; }
+  .hero h1{ font-family:'Aref Ruqaa', serif; font-weight:700; font-size:clamp(38px,7vw,64px); color:var(--brass-bright);
+    text-shadow:0 2px 24px rgba(198,161,91,0.25); line-height:1.3; }
+  .hero .sub{ font-family:'Amiri', serif; font-size:17px; color:var(--muted); margin-top:10px; letter-spacing:1px; }
+
+  /* ---------- vitrine (signature element) ---------- */
+  .vitrine-holder{ position:relative; padding:26px; margin-bottom:50px; }
+  .vitrine{
+    position:relative; border:1px solid var(--hairline); border-radius:2px; padding:40px 30px 30px;
+    background:linear-gradient(180deg, rgba(198,161,91,0.045), rgba(198,161,91,0.01));
+    box-shadow: inset 0 0 60px rgba(198,161,91,0.05), 0 30px 70px rgba(0,0,0,0.45);
+  }
+  .vitrine::before{ content:''; position:absolute; inset:8px; border:1px solid var(--hairline); border-radius:1px; pointer-events:none; }
+  .corner{ position:absolute; width:34px; height:34px; opacity:.9; }
+  .corner svg{ width:100%; height:100%; }
+  .corner.tl{ top:-1px; right:-1px; transform:scaleX(-1); }
+  .corner.tr{ top:-1px; left:-1px; }
+  .corner.bl{ bottom:-1px; right:-1px; transform:scale(-1,-1); }
+  .corner.br{ bottom:-1px; left:-1px; transform:scaleY(-1); }
+
+  .vitrine .kicker{ text-align:center; font-family:'Cormorant Garamond', serif; font-style:italic; color:var(--muted); letter-spacing:3px; font-size:13px; margin-bottom:6px; }
+  .vitrine .headline{ text-align:center; font-family:'Amiri', serif; font-weight:700; font-size:22px; color:var(--parchment); margin-bottom:24px; }
+
+  .hero-price{ text-align:center; padding-bottom:26px; border-bottom:1px solid var(--hairline); margin-bottom:22px; }
+  .hero-price .label{ font-size:13px; color:var(--muted); margin-bottom:8px; }
+  .hero-price .num{ font-family:'IBM Plex Mono', monospace; font-weight:600; font-size:clamp(44px,9vw,72px); color:var(--brass-bright);
+    letter-spacing:1px; }
+  .hero-price .num span{ font-size:.4em; color:var(--muted); margin-right:8px; }
+  .hero-price .asof{ font-size:11.5px; color:var(--muted); margin-top:10px; font-family:'IBM Plex Mono',monospace; }
+
+  .ledger{ display:grid; grid-template-columns:1fr; gap:0; }
+  .ledger-row{ display:flex; align-items:center; justify-content:space-between; padding:14px 6px;
+    border-bottom:1px dashed var(--hairline); font-size:15px; }
+  .ledger-row:last-child{ border-bottom:none; }
+  .ledger-row .name{ display:flex; align-items:center; gap:10px; color:var(--parchment); }
+  .ledger-row .name .tag{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--ink); background:var(--brass); border-radius:3px; padding:2px 7px; font-weight:600; }
+  .ledger-row .price{ font-family:'IBM Plex Mono', monospace; font-weight:600; font-size:19px; color:var(--brass-bright); }
+  .ledger-row .price small{ font-size:12px; color:var(--muted); font-weight:400; margin-right:4px; }
+
+  .disclaimer{ text-align:center; font-size:11.5px; color:var(--muted); line-height:1.9; margin-top:26px; padding-top:18px; border-top:1px solid var(--hairline); }
+
+  /* ---------- heritage ---------- */
+  .heritage{ display:grid; grid-template-columns:1fr 1fr; gap:34px; margin-bottom:54px; align-items:start; }
+  .heritage .seal{ justify-self:center; width:150px; height:150px; border-radius:50%; border:1.5px solid var(--garnet-bright);
+    color:var(--garnet-bright); display:flex; align-items:center; justify-content:center; text-align:center;
+    font-family:'Amiri',serif; font-size:14px; line-height:1.7; padding:14px; position:relative; }
+  .heritage .seal::before{ content:''; position:absolute; inset:8px; border:1px solid var(--garnet); border-radius:50%; }
+  .heritage h2{ font-family:'Amiri', serif; color:var(--brass-bright); font-size:24px; margin-bottom:14px; }
+  .heritage p{ color:var(--muted); font-size:14.5px; line-height:2; }
+  @media (max-width:720px){ .heritage{ grid-template-columns:1fr; text-align:center; } }
+
+  /* ---------- contact ---------- */
+  .contact{ text-align:center; padding:34px 20px; border-top:1px solid var(--hairline); border-bottom:1px solid var(--hairline); margin-bottom:30px; }
+  .contact .name{ font-family:'Aref Ruqaa', serif; font-size:26px; color:var(--brass-bright); margin-bottom:12px; }
+  .contact .line{ color:var(--muted); font-size:13.5px; margin:4px 0; direction:rtl; }
+  .contact .line b{ color:var(--parchment); font-weight:500; }
+
+  footer{ text-align:center; font-size:11px; color:var(--muted); padding-top:8px; letter-spacing:1px; }
+  footer a{ color:var(--brass); text-decoration:none; }
+
+  /* one-shot shimmer across the vitrine on load */
+  .vitrine::after{ content:''; position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(100deg, transparent 40%, rgba(232,201,131,0.16) 50%, transparent 60%);
+    background-size:250% 100%; background-position:120% 0; animation:shimmer 2.4s var(--ease) .3s 1; }
+  @keyframes shimmer{ to{ background-position:-30% 0; } }
+
+  .price-updated{ animation:flash .9s var(--ease); }
+  @keyframes flash{ 0%{ color:var(--parchment); } 30%{ color:var(--brass-bright); text-shadow:0 0 18px rgba(232,201,131,.6); } 100%{ color:var(--brass-bright); } }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<div class="wrap">
+
+  <div class="topline">
+    <span><span class="liveDot"></span>أسعار لحظية</span>
+    <span>السويس، جمهورية مصر العربية</span>
+  </div>
+
+  <div class="hero">
+    <div class="est">EST. — TRADITION OF FINE GOLDSMITHING</div>
+    <h1>حسن ومصطفى نصار</h1>
+    <div class="sub">لتصنيع الذهب والمجوهرات</div>
+  </div>
+
+  <div class="vitrine-holder">
+    <div class="vitrine">
+      <div class="corner tl"><svg viewBox="0 0 34 34"><path d="M2 32 V10 Q2 2 10 2 H32" fill="none" stroke="var(--brass)" stroke-width="1"/><circle cx="10" cy="10" r="2" fill="var(--brass)"/></svg></div>
+      <div class="corner tr"><svg viewBox="0 0 34 34"><path d="M2 32 V10 Q2 2 10 2 H32" fill="none" stroke="var(--brass)" stroke-width="1"/><circle cx="10" cy="10" r="2" fill="var(--brass)"/></svg></div>
+      <div class="corner bl"><svg viewBox="0 0 34 34"><path d="M2 32 V10 Q2 2 10 2 H32" fill="none" stroke="var(--brass)" stroke-width="1"/><circle cx="10" cy="10" r="2" fill="var(--brass)"/></svg></div>
+      <div class="corner br"><svg viewBox="0 0 34 34"><path d="M2 32 V10 Q2 2 10 2 H32" fill="none" stroke="var(--brass)" stroke-width="1"/><circle cx="10" cy="10" r="2" fill="var(--brass)"/></svg></div>
+
+      <div class="kicker">لوحة الأسعار</div>
+      <div class="headline">سعر الجرام اليوم</div>
+
+      <div class="hero-price">
+        <div class="label">عيار ٢٤ — ذهب خالص</div>
+        <div class="num" id="heroPrice">— <span>ج.م / جم</span></div>
+        <div class="asof" id="asOf">جاري الاتصال بلوحة أسعار المحل...</div>
+      </div>
+
+      <div class="ledger" id="karatLedger"></div>
+      <div class="ledger" id="silverLedger" style="margin-top:6px;"></div>
+
+      <div class="disclaimer">
+        الأسعار الموضحة أعلاه تسترشادية وتعكس آخر تحديث من المحل مباشرة، وهي قابلة للتغيير في أي وقت
+        دون إشعار مسبق حسب حركة سعر الذهب العالمي وسعر الصرف. للسعر النهائي وقت الشراء، يُرجى
+        التواصل مع المحل أو زيارته مباشرة.
+      </div>
+    </div>
+  </div>
+
+  <div class="heritage">
+    <div>
+      <div class="seal">البيع بسعر<br>المصنع<br>مصوغات ومجوهرات<br>حسن ومصطفى نصار</div>
+    </div>
+    <div>
+      <h2>صنعة موثوقة، على مدار الأجيال</h2>
+      <p>
+        منذ تأسيسها، اختصت مصوغات ومجوهرات حسن ومصطفى نصار في تصنيع الذهب والمجوهرات
+        بخبرة يدوية متوارثة، وسياسة بيع واضحة بسعر المصنع مباشرة دون وسطاء.
+        كل قطعة تحمل توقيع دقة الصنعة وضمان العيار الموضح عليها.
+      </p>
+    </div>
+  </div>
+
+  <div class="contact">
+    <div class="name">تفضلوا بزيارتنا</div>
+    <div class="line"><b>العنوان:</b> ٢٦ شارع مصطفى صدقي بالأربعين — السويس</div>
+    <div class="line"><b>تليفون:</b> ٠٦٢/٣٤٤١٤٢٢ &nbsp;—&nbsp; <b>موبايل:</b> ٠١٢٢١٤٠٠٨٨٨</div>
+  </div>
+
+  <footer>© <span id="yr"></span> مصوغات ومجوهرات حسن ومصطفى نصار — جميع الحقوق محفوظة</footer>
+</div>
+
+<!-- Firestore only (public read of the price document — no auth needed) -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script>
+document.getElementById('yr').textContent = new Date().getFullYear();
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAQMILfvEzLXxUKYbScldvKTHKQEk4PpN4",
+  authDomain: "hassan-nassar-license.firebaseapp.com",
+  projectId: "hassan-nassar-license",
+  storageBucket: "hassan-nassar-license.firebasestorage.app",
+  messagingSenderId: "381313051649",
+  appId: "1:381313051649:web:ef6e6667f691848c3c6400",
+  measurementId: "G-E939CTWF3W"
+};
+firebase.initializeApp(firebaseConfig);
+const fsdb = firebase.firestore();
+
+const KARAT_LABELS = { 24:'عيار ٢٤', 14:'عيار ١٤', 12:'عيار ١٢', 9:'عيار ٩' };
+const AR_DIGITS = {'0':'٠','1':'١','2':'٢','3':'٣','4':'٤','5':'٥','6':'٦','7':'٧','8':'٨','9':'٩'};
+function toArabicDigits(s){ return String(s).split('').map(c=>AR_DIGITS[c]!==undefined?AR_DIGITS[c]:c).join(''); }
+function fmt(n){ return (Number(n)||0).toLocaleString('ar-EG',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+let lastPayload = null;
+
+function render(data){
+  if(!data) return;
+
+  const heroEl = document.getElementById('heroPrice');
+  const k24 = (data.karats||[]).find(k=>k.karat===24);
+  if(k24){
+    heroEl.innerHTML = fmt(k24.price) + ' <span>ج.م / جم</span>';
+    heroEl.classList.remove('price-updated'); void heroEl.offsetWidth; heroEl.classList.add('price-updated');
+  }
+
+  const ledger = document.getElementById('karatLedger');
+  ledger.innerHTML = (data.karats||[]).filter(k=>k.karat!==24).map(k=>`
+    <div class="ledger-row">
+      <div class="name"><span class="tag">${toArabicDigits(k.karat)}</span> ${KARAT_LABELS[k.karat]||('عيار '+k.karat)}</div>
+      <div class="price">${fmt(k.price)} <small>ج.م / جم</small></div>
+    </div>
+  `).join('');
+
+  const silverLedger = document.getElementById('silverLedger');
+  const s = data.silver || {};
+  const silverRows = [
+    ['فضة ٩٩٩', s.p999], ['فضة ٩٢٥', s.p925], ['فضة ٨٠٠', s.p800]
+  ].filter(([,v])=>v);
+  silverLedger.innerHTML = silverRows.map(([label,v])=>`
+    <div class="ledger-row">
+      <div class="name"><span class="tag" style="background:#b9b9b9;">Ag</span> ${label}</div>
+      <div class="price">${fmt(v)} <small>ج.م / جم</small></div>
+    </div>
+  `).join('');
+
+  const asOf = document.getElementById('asOf');
+  if(data.updatedAt && data.updatedAt.toDate){
+    const d = data.updatedAt.toDate();
+    asOf.textContent = 'آخر تحديث: ' + d.toLocaleString('ar-EG', {year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  } else {
+    asOf.textContent = 'متصل بلوحة أسعار المحل مباشرة';
+  }
+}
+
+fsdb.collection('public_data').doc('prices').onSnapshot(
+  (doc)=>{
+    if(!doc.exists){ document.getElementById('asOf').textContent = 'لم يتم نشر أسعار بعد'; return; }
+    lastPayload = doc.data();
+    render(lastPayload);
+  },
+  (err)=>{
+    console.warn('Price sync error:', err);
+    document.getElementById('asOf').textContent = 'تعذر الاتصال بلوحة الأسعار — يتم المحاولة تلقائياً';
+  }
+);
+</script>
+</body>
+</html>
