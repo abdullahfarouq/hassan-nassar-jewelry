@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>مجوهرات حسن نصار | الإعدادات · المستخدمين · سجل العمليات · عن المطور</title>
+<title>مجوهرات حسن نصار | الكسر · الاسترجاع · الحجز · التفصيل والصيانة</title>
 <style>
   :root{
     --bg:#08080A; --liquid-glass: rgba(24,24,28,0.45); --glass-border: rgba(255,255,255,0.08);
@@ -16,7 +16,7 @@
   .ambient{ position:fixed; inset:0; z-index:0; pointer-events:none;
     background: radial-gradient(circle at 10% 10%, rgba(255,214,10,0.08), transparent 40%), radial-gradient(circle at 90% 20%, rgba(10,132,255,0.10), transparent 45%); }
   .glass{ background:var(--liquid-glass); backdrop-filter: blur(25px) saturate(140%); -webkit-backdrop-filter: blur(25px) saturate(140%);
-    border:1px solid var(--glass-border); border-radius:20px; box-shadow:0 16px 50px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05); position:relative; overflow:hidden; }
+    border:1px solid var(--glass-border); border-radius:20px; box-shadow:0 16px 50px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05); position:relative; overflow:hidden;}
   .glass::before{ content:""; position:absolute; top:0; left:6%; right:6%; height:1px; background:linear-gradient(90deg, transparent, rgba(255,255,255,.5), transparent); opacity:.5; }
   .wrap{ position:relative; z-index:1; max-width:1180px; margin:0 auto; padding:20px; }
 
@@ -25,46 +25,37 @@
   .tab.active{ color:var(--cream); background:linear-gradient(120deg, rgba(255,214,10,0.14), rgba(255,159,10,0.08)); box-shadow:inset 0 0 0 1px rgba(255,159,10,0.3); }
   .panel{ display:none; } .panel.active{ display:block; }
 
-  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start; }
-  .card{ padding:22px; }
+  .grid2{ display:grid; grid-template-columns:360px 1fr; gap:16px; align-items:start; }
+  .card{ padding:20px; }
   .card h2{ font-size:14.5px; margin-bottom:14px; }
   label{ font-size:12px; color:var(--muted); display:block; margin-bottom:6px; }
   input,select,textarea{ width:100%; padding:11px 13px; border-radius:12px; margin-bottom:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); color:var(--cream); font-size:13.5px; outline:none; transition:all .25s var(--ease); font-family:inherit; }
   input:focus,select:focus,textarea:focus{ border-color:var(--blue); box-shadow:0 0 0 4px rgba(10,132,255,0.16); transform:scale(1.01); background:rgba(10,132,255,0.05); }
-  .btn{ padding:12px 16px; border:none; border-radius:12px; font-size:13.5px; font-weight:700; cursor:pointer; transition:transform .18s var(--ease); }
+  .btn{ padding:12px 16px; border:none; border-radius:12px; font-size:13.5px; font-weight:700; cursor:pointer; width:100%; transition:transform .18s var(--ease); }
   .btn:active{ transform:scale(0.96); }
   .btn-gold{ background:linear-gradient(120deg,var(--gold-1),var(--gold-2)); color:#151007; box-shadow:0 8px 22px rgba(255,159,10,.28); }
-  .btn-ghost{ background:rgba(255,255,255,0.06); color:var(--cream); border:1px solid rgba(255,255,255,0.1); }
-  .btn-danger{ background:rgba(255,105,97,0.14); color:#FF9791; border:1px solid rgba(255,105,97,0.3); }
-  .btn-sm{ padding:7px 12px; font-size:12px; border-radius:9px; }
-
-  .karat-preview{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:6px; }
-  .karat-preview .c{ background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:10px; padding:10px; text-align:center; font-size:12px; }
-  .karat-preview .c b{ display:block; color:var(--gold-1); font-family:ui-monospace,Menlo,monospace; font-size:13.5px; margin-top:3px; }
+  .btn-ghost{ background:rgba(255,255,255,0.06); color:var(--cream); border:1px solid rgba(255,255,255,0.1); margin-top:8px; }
+  .btn-sm{ padding:7px 11px; font-size:11.5px; border-radius:9px; width:auto; }
 
   table{ width:100%; border-collapse:collapse; font-size:12.5px; }
   thead th{ text-align:right; color:var(--muted); font-weight:600; font-size:11px; padding:8px; border-bottom:1px solid rgba(255,255,255,0.08); }
   tbody td{ padding:9px 8px; border-bottom:1px solid rgba(255,255,255,0.05); }
   .empty{ text-align:center; color:var(--muted); padding:26px; font-size:12.5px; }
 
-  .role-badge{ font-size:10.5px; padding:3px 9px; border-radius:8px; }
-  .role-badge.owner{ background:rgba(255,159,10,0.14); color:var(--gold-1); }
-  .role-badge.seller{ background:rgba(10,132,255,0.14); color:var(--blue); }
-  .role-badge.accountant{ background:rgba(48,209,88,0.14); color:var(--green); }
+  .calc-box{ background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); border-radius:12px; padding:14px; margin-bottom:14px; }
+  .calc-row{ display:flex; justify-content:space-between; font-size:12.5px; padding:5px 0; }
+  .calc-row.total{ font-weight:700; color:var(--gold-1); font-size:15px; border-top:1px solid rgba(255,255,255,0.08); margin-top:6px; padding-top:9px; }
 
-  .perm-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
-  .perm-item{ display:flex; align-items:center; gap:8px; font-size:12.5px; background:rgba(255,255,255,0.03); padding:9px 12px; border-radius:10px; }
-  .perm-item input{ width:auto; margin:0; }
+  .status-pill{ font-size:10.5px; padding:3px 9px; border-radius:8px; }
+  .status-pill.received{ background:rgba(10,132,255,0.14); color:var(--blue); }
+  .status-pill.workshop{ background:rgba(255,159,10,0.14); color:var(--gold-1); }
+  .status-pill.ready{ background:rgba(48,209,88,0.14); color:var(--green); }
+  .status-pill.delivered{ background:rgba(142,142,147,0.14); color:var(--muted); }
+  .status-pill.reserved{ background:rgba(255,159,10,0.14); color:var(--gold-1); }
+  .status-pill.completed{ background:rgba(48,209,88,0.14); color:var(--green); }
 
-  .about-card{ text-align:center; padding:40px; }
-  .about-card .mark{ width:80px;height:80px;border-radius:22px; margin:0 auto 18px; background:linear-gradient(145deg,var(--gold-1),var(--gold-2)); display:flex;align-items:center;justify-content:center;font-weight:700;color:#151007;font-size:28px; }
-  .about-row{ display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.06); font-size:13px; max-width:420px; margin:0 auto; }
-  .about-row span:last-child{ color:var(--gold-1); font-family:ui-monospace,Menlo,monospace; }
-
-  .audit-type{ font-size:10.5px; padding:3px 9px; border-radius:8px; }
-  .audit-type.delete{ background:rgba(255,105,97,0.14); color:#FF9791; }
-  .audit-type.edit{ background:rgba(255,159,10,0.14); color:var(--gold-1); }
-  .audit-type.create{ background:rgba(48,209,88,0.14); color:var(--green); }
+  .sr-item{ padding:10px 12px; cursor:pointer; border-radius:10px; font-size:12.5px; display:flex; justify-content:space-between; }
+  .sr-item:hover{ background:rgba(255,255,255,0.04); }
 
   #toast{ position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
     background:var(--liquid-glass); backdrop-filter:blur(20px); border:1px solid var(--glass-border);
@@ -74,7 +65,25 @@
   .setup-gate{ display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
   .setup-card{ max-width:440px; width:100%; padding:32px; text-align:center; }
 
-  @media (max-width:800px){ .grid2{ grid-template-columns:1fr; } }
+  @media (max-width:900px){ .grid2{ grid-template-columns:1fr; } }
+  /* ===== Hassan Nassar Quick Nav (floating) ===== */
+  .hn-qn{ position:fixed; top:16px; left:16px; z-index:999; }
+  .hn-qn-btn{ display:flex; align-items:center; gap:8px; padding:10px 16px; border-radius:100px; border:none; cursor:pointer;
+    background:var(--liquid-glass); backdrop-filter:blur(25px) saturate(140%); -webkit-backdrop-filter:blur(25px) saturate(140%);
+    border:1px solid var(--glass-border); color:var(--cream); font-size:12.5px; font-weight:700;
+    box-shadow:0 10px 30px rgba(0,0,0,0.4); transition:transform .18s var(--ease); }
+  .hn-qn-btn:hover{ transform:translateY(-2px); }
+  .hn-qn-btn:active{ transform:scale(.96); }
+  .hn-qn-dot{ width:8px; height:8px; border-radius:50%; background:var(--gold-1); box-shadow:0 0 8px var(--gold-1); }
+  .hn-qn-menu{ position:absolute; top:calc(100% + 8px); left:0; min-width:240px; padding:8px; border-radius:16px;
+    background:var(--liquid-glass); backdrop-filter:blur(25px) saturate(140%); -webkit-backdrop-filter:blur(25px) saturate(140%);
+    border:1px solid var(--glass-border); box-shadow:0 20px 50px rgba(0,0,0,0.5);
+    display:none; flex-direction:column; gap:2px; }
+  .hn-qn.open .hn-qn-menu{ display:flex; }
+  .hn-qn-menu a{ display:block; padding:10px 12px; border-radius:10px; color:var(--cream); text-decoration:none; font-size:13px; transition:background .15s; }
+  .hn-qn-menu a:hover{ background:rgba(255,255,255,0.06); color:var(--gold-1); }
+  @media(max-width:640px){ .hn-qn{ top:10px; left:10px; } .hn-qn-btn{ padding:9px 13px; font-size:11.5px; } }
+
 </style>
 
 <!-- Firebase & License Guard -->
@@ -110,173 +119,140 @@
 })();
 </script>
 
+<div class="hn-qn" id="hnQuickNav">
+  <button class="hn-qn-btn" onclick="document.getElementById('hnQuickNav').classList.toggle('open')" aria-label="القائمة">
+    <span class="hn-qn-dot"></span> القائمة
+  </button>
+  <div class="hn-qn-menu">
+    <a href="index.html">🏠 الرئيسية</a>
+    <a href="hassan-nassar-jewelry-02-dashboard.html">📈 لوحة التحكم</a>
+    <a href="hassan-nassar-jewelry-04-invoice.html">🧾 فاتورة بيع جديدة</a>
+    <a href="hassan-nassar-jewelry-03-data-core.html">📦 المخزون · العملاء · الموردين</a>
+    <a href="hassan-nassar-jewelry-05-barcode-reports.html">🖨️ الباركود والتقارير</a>
+    <a href="hassan-nassar-jewelry-06-settings-users.html">⚙️ الإعدادات والمستخدمين</a>
+    <a href="hassan-nassar-jewelry-07-transactions.html">♻️ الكسر والاسترجاع والحجز</a>
+    <a href="hassan-nassar-jewelry-08-finance-final.html">💵 المصروفات والمقاصة</a>
+  </div>
+</div>
+
 <div class="ambient"></div>
 <div id="toast"></div>
 
 <div class="setup-gate" id="gateScreen">
   <div class="setup-card glass">
     <h1 style="font-size:18px;margin-bottom:10px;">جاري تحميل بيانات المحل...</h1>
-    <p style="color:var(--muted);font-size:13px;margin-bottom:20px;">اختر نفس مجلد "مجوهرات حسن نصار" لعرض الإعدادات والمستخدمين وسجل العمليات.</p>
-    <button class="btn btn-gold" style="width:100%;" onclick="DB.pickFolder().then(afterConnect)">📁 تحديد مجلد نسخة احتياطية (اختياري)</button>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:20px;">اختر نفس مجلد "مجوهرات حسن نصار" للمتابعة.</p>
+    <button class="btn btn-gold" onclick="DB.pickFolder().then(afterConnect)">📁 تحديد مجلد نسخة احتياطية (اختياري)</button>
   </div>
 </div>
 
 <div class="wrap" id="appScreen" style="display:none;">
   <div class="tabs">
-    <div class="tab active" data-tab="general">⚙️ الإعدادات العامة</div>
-    <div class="tab" data-tab="users">👤 المستخدمين والصلاحيات</div>
-    <div class="tab" data-tab="audit">📜 سجل العمليات</div>
-    <div class="tab" data-tab="about">ℹ️ عن المطور</div>
-    <div class="tab" data-tab="accounts">🔑 حسابات الدخول</div>
+    <div class="tab active" data-tab="oldgold">♻️ شراء الذهب الكسر</div>
+    <div class="tab" data-tab="returns">🔄 الاسترجاع والاستبدال</div>
+    <div class="tab" data-tab="layaway">📦 حجز الذهب والعربون</div>
+    <div class="tab" data-tab="repairs">🛠️ طلبات التفصيل والصيانة</div>
   </div>
 
-  <!-- ================= GENERAL SETTINGS ================= -->
-  <div class="panel active" id="panel-general">
+  <!-- ============ OLD GOLD (KASR) ============ -->
+  <div class="panel active" id="panel-oldgold">
     <div class="grid2">
       <div class="card glass">
-        <h2>بيانات المحل</h2>
-        <label>اسم المحل</label><input id="setShopName" placeholder="مجوهرات حسن نصار">
-        <label>اسم الفرع</label><input id="setBranch" placeholder="الفرع الرئيسي">
-        <label>هاتف المحل (يظهر على الفاتورة)</label><input id="setShopPhone" placeholder="مثال: 062/3441422 — م: 01221400888">
-        <label>عنوان المحل (يظهر على الفاتورة)</label><input id="setShopAddress" placeholder="مثال: 26 شارع مصطفى صدقي بالأربعين — السويس">
-        <label>الرقم الضريبي (اختياري)</label><input id="setTaxNo" placeholder="مثال: 119 — 174 — 205">
-        <button class="btn btn-gold" style="width:100%;" onclick="saveGeneral()">💾 حفظ بيانات المحل</button>
+        <h2>استلام ذهب كسر من العميل</h2>
+        <label>الوزن القائم (كما هو)</label><input id="kasrGross" type="number" step="0.01" oninput="calcKasr()">
+        <label>خصم الفصوص/الأوساخ (جرام)</label><input id="kasrDeduct" type="number" step="0.01" value="0" oninput="calcKasr()">
+        <label>العيار</label><select id="kasrKarat" onchange="calcKasr()"><option selected>24</option><option>14</option><option>12</option><option>9</option></select>
+        <div class="calc-box">
+          <div class="calc-row"><span>الوزن الصافي</span><b id="kasrNet">0.00 جم</b></div>
+          <div class="calc-row"><span>سعر الجرام (بالعيار المحدد)</span><b id="kasrPrice">0.00 ج.م</b></div>
+          <div class="calc-row total"><span>القيمة المستحقة للعميل</span><span id="kasrValue">0.00 ج.م</span></div>
+        </div>
+        <label>اسم العميل</label><input id="kasrCustName">
+        <label>رقم الهاتف</label><input id="kasrCustPhone">
+        <button class="btn btn-gold" onclick="saveKasr()">✅ ترحيل للمخزون وصرف القيمة</button>
+        <p style="color:var(--muted);font-size:11px;margin-top:10px;">تُخصم القيمة تلقائياً من الخزنة (كمصروف)، وتُضاف القطعة لمخزون "الذهب المستعمل" بنفس العيار.</p>
       </div>
-
       <div class="card glass">
-        <h2>سعر الذهب الموحّد <span style="color:var(--muted);font-weight:400;font-size:11.5px;">(يُستخدم في كل الشاشات تلقائياً)</span></h2>
-        <label>سعر جرام عيار 21</label>
-        <input id="setBasePrice" type="number" oninput="previewKarats()">
-        <div class="karat-preview" id="karatPreview"></div>
-        <button class="btn btn-gold" style="width:100%;margin-top:10px;" onclick="saveGoldPrice()">💾 حفظ وتحديث كل الشاشات</button>
-        <p style="color:var(--muted);font-size:11px;margin-top:10px;">بمجرد الحفظ، هذا السعر يُقرأ تلقائياً من لوحة التحكم وفاتورة البيع والتقارير — بدل الأرقام الثابتة المؤقتة في كل شاشة منفصلة.</p>
-      </div>
-
-      <div class="card glass">
-        <h2>أسعار الفضة <span style="color:var(--muted);font-weight:400;font-size:11.5px;">(تسعير يدوي مستقل عن الذهب)</span></h2>
-        <label>سعر جرام فضة عيار 999</label>
-        <input id="setSilver999" type="number" step="0.01" placeholder="0.00">
-        <label>سعر جرام فضة عيار 925</label>
-        <input id="setSilver925" type="number" step="0.01" placeholder="0.00">
-        <label>سعر جرام فضة عيار 800</label>
-        <input id="setSilver800" type="number" step="0.01" placeholder="0.00">
-        <button class="btn btn-gold" style="width:100%;margin-top:10px;" onclick="saveSilverPrices()">💾 حفظ أسعار الفضة</button>
-        <p style="color:var(--muted);font-size:11px;margin-top:10px;">كل عيار فضة له سعره الخاص — يُدخل يدوياً، ولا يتأثر بمعادلة سعر الذهب.</p>
+        <h2>سجل عمليات الكسر</h2>
+        <table><thead><tr><th>العميل</th><th>العيار</th><th>الوزن الصافي</th><th>القيمة</th><th>التاريخ</th></tr></thead><tbody id="kasrBody"></tbody></table>
+        <div class="empty" id="kasrEmpty">لا توجد عمليات كسر بعد</div>
       </div>
     </div>
   </div>
 
-  <!-- ================= USERS & ROLES ================= -->
-  <div class="panel" id="panel-users">
+  <!-- ============ RETURNS / EXCHANGE ============ -->
+  <div class="panel" id="panel-returns">
     <div class="grid2">
       <div class="card glass">
-        <h2>إضافة مستخدم جديد</h2>
-        <label>اسم المستخدم</label><input id="usrName" placeholder="اسم الموظف">
-        <label>اسم الدخول</label><input id="usrLogin" placeholder="username">
-        <label>الدور الوظيفي</label>
-        <select id="usrRole" onchange="renderPermPreview()">
-          <option value="seller">بائع</option>
-          <option value="accountant">محاسب</option>
-          <option value="owner">مدير المحل (كل الصلاحيات)</option>
-        </select>
-
-        <div class="perm-grid" id="permPreview"></div>
-        <p style="color:var(--muted);font-size:11px;margin-bottom:12px;">الصلاحيات أعلاه مقترحة تلقائياً حسب الدور، ويمكن تعديلها يدوياً قبل الحفظ.</p>
-        <button class="btn btn-gold" style="width:100%;" onclick="addUser()">➕ إضافة المستخدم</button>
+        <h2>استرجاع قطعة مباعة</h2>
+        <label>ابحث بكود القطعة</label>
+        <input id="retSearch" placeholder="اكتب الكود..." oninput="renderRetResults()">
+        <div id="retResults"></div>
+        <div id="retCalcBox" style="display:none;">
+          <div class="calc-box">
+            <div class="calc-row"><span>الوزن الصافي</span><b id="retWeight">—</b></div>
+            <div class="calc-row"><span>سعر الجرام الحالي (وقت الاسترجاع)</span><b id="retPrice">—</b></div>
+            <div class="calc-row"><span>قيمة الذهب (بدون مصنعية)</span><b id="retGoldVal">—</b></div>
+            <div class="calc-row total"><span>المبلغ المسترد للعميل</span><span id="retRefund">—</span></div>
+          </div>
+          <button class="btn btn-gold" onclick="confirmReturn()">✅ تأكيد الاسترجاع</button>
+          <p style="color:var(--muted);font-size:11px;margin-top:8px;">يتم خصم المصنعية بالكامل، وإعادة تقييم الذهب بسعر اليوم الحالي وليس سعر يوم الشراء — والمبلغ يُخصم من الخزنة تلقائياً.</p>
+        </div>
       </div>
       <div class="card glass">
-        <h2>المستخدمون الحاليون</h2>
-        <table>
-          <thead><tr><th>الاسم</th><th>اسم الدخول</th><th>الدور</th><th></th></tr></thead>
-          <tbody id="usersBody"></tbody>
-        </table>
-        <div class="empty" id="usersEmpty">لا يوجد مستخدمون إضافيون بعد — صاحب المحل هو المسؤول الوحيد حالياً</div>
+        <h2>سجل الاسترجاعات</h2>
+        <table><thead><tr><th>الصنف</th><th>الكود</th><th>المبلغ المسترد</th><th>التاريخ</th></tr></thead><tbody id="retBody"></tbody></table>
+        <div class="empty" id="retEmpty">لا توجد عمليات استرجاع بعد</div>
       </div>
     </div>
   </div>
 
-  <!-- ================= AUDIT TRAIL ================= -->
-  <div class="panel" id="panel-audit">
-    <div class="card glass">
-      <h2>سجل العمليات الحساسة <span style="color:var(--muted);font-weight:400;font-size:11.5px;">من قام بماذا ومتى</span></h2>
-      <table>
-        <thead><tr><th>النوع</th><th>الوصف</th><th>بواسطة</th><th>الوقت</th></tr></thead>
-        <tbody id="auditBody"></tbody>
-      </table>
-      <div class="empty" id="auditEmpty">لا توجد عمليات مسجلة بعد</div>
-      <p style="color:var(--muted);font-size:11px;margin-top:14px;">هذا السجل تلقائي: أي حذف أو تعديل حساس في أي وحدة من وحدات النظام (المخزون، الأسعار، الفواتير) يُسجَّل هنا تلقائياً بمجرد ربط باقي الوحدات بهذا السجل المشترك.</p>
+  <!-- ============ LAYAWAY / DEPOSIT ============ -->
+  <div class="panel" id="panel-layaway">
+    <div class="grid2">
+      <div class="card glass">
+        <h2>حجز قطعة بعربون</h2>
+        <label>ابحث عن الصنف المراد حجزه</label>
+        <input id="laySearch" placeholder="اكتب الكود أو الاسم..." oninput="renderLaySearch()">
+        <div id="layResults"></div>
+        <div id="laySelectedBox" style="display:none;">
+          <div class="calc-box"><div class="calc-row"><span>الصنف المحدد</span><b id="laySelectedName">—</b></div></div>
+          <label>اسم العميل</label><input id="layCustName">
+          <label>رقم الهاتف</label><input id="layCustPhone">
+          <label>مبلغ العربون</label><input id="layDeposit" type="number" step="0.01">
+          <label><input type="checkbox" id="layLockPrice" style="width:auto;display:inline-block;margin-left:6px;"> تثبيت سعر الذهب وقت العربون</label>
+          <label>تاريخ التسليم المتوقع</label><input id="layDate" type="date">
+          <button class="btn btn-gold" onclick="saveLayaway()">✅ تأكيد الحجز وطباعة الإيصال</button>
+        </div>
+      </div>
+      <div class="card glass">
+        <h2>الحجوزات النشطة</h2>
+        <table><thead><tr><th>الصنف</th><th>العميل</th><th>العربون</th><th>الحالة</th><th></th></tr></thead><tbody id="layBody"></tbody></table>
+        <div class="empty" id="layEmpty">لا توجد حجوزات نشطة</div>
+      </div>
     </div>
   </div>
 
-  <!-- ================= ABOUT DEVELOPER ================= -->
-  <div class="panel" id="panel-about">
-    <div class="about-card glass" style="max-width:520px;margin:0 auto;">
-      <div class="mark">HN</div>
-      <h1 style="font-size:19px;margin-bottom:4px;">نظام إدارة مجوهرات حسن نصار</h1>
-      <p style="color:var(--muted);font-size:12.5px;margin-bottom:24px;">جميع حقوق البرمجة والتصميم محفوظة للمطور</p>
-      <div class="about-row"><span>اسم المطور</span><span>Abdullah Farouq</span></div>
-      <div class="about-row"><span>رقم الهاتف</span><span>+201061947000</span></div>
-      <div class="about-row"><span>البريد الإلكتروني</span><span>Abdullah.farouq87@icloud.com</span></div>
-      <div class="about-row"><span>إصدار النظام</span><span>v0.5 (قيد البناء)</span></div>
-    </div>
-
-    <!-- ================= DEVELOPER DANGER ZONE ================= -->
-    <div class="card glass" style="max-width:520px;margin:24px auto 0;border:1px solid rgba(255,105,97,0.35);">
-      <h2 style="color:#FF9791;">⚠️ منطقة الخطر — مسح البيانات</h2>
-      <p style="color:var(--muted);font-size:12.5px;margin-bottom:16px;">هذا القسم للمطور فقط. المسح نهائي ولا يمكن التراجع عنه بعد التنفيذ.</p>
-
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.08);">
-        <input type="checkbox" id="wipeAll" onchange="toggleWipeAll(this.checked)" style="width:16px;height:16px;">
-        <label for="wipeAll" style="font-weight:700;font-size:13px;">تحديد كل الأقسام</label>
+  <!-- ============ REPAIRS / CUSTOM ORDERS ============ -->
+  <div class="panel" id="panel-repairs">
+    <div class="grid2">
+      <div class="card glass">
+        <h2>استلام طلب تفصيل / صيانة</h2>
+        <label>اسم العميل</label><input id="repCustName">
+        <label>رقم الهاتف</label><input id="repCustPhone">
+        <label>وصف الطلب</label><textarea id="repDesc" rows="2" placeholder="مثال: تفصيل خاتم اسم، أو تصليح سلسلة مقطوعة"></textarea>
+        <label>الوزن التقديري (جرام)</label><input id="repWeight" type="number" step="0.01">
+        <label>الورشة</label>
+        <input list="workshopList" id="repWorkshop" placeholder="اختر من القائمة أو اكتب اسم ورشة جديدة">
+        <datalist id="workshopList"></datalist>
+        <label>تاريخ التسليم المتوقع</label><input id="repDate" type="date">
+        <label>مبلغ العربون (اختياري)</label><input id="repDeposit" type="number" step="0.01" value="0">
+        <button class="btn btn-gold" onclick="saveRepair()">✅ تسجيل الطلب</button>
       </div>
-
-      <div id="wipeSections" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
-        <label style="display:flex;align-items:center;gap:10px;font-size:13px;width:100%;padding:4px 0;"><input type="checkbox" class="wipeItem" value="inventory" style="flex:0 0 auto;width:16px;height:16px;"><span style="flex:1 1 auto;min-width:0;">📦 المخزون</span></label>
-        <label style="display:flex;align-items:center;gap:10px;font-size:13px;width:100%;padding:4px 0;"><input type="checkbox" class="wipeItem" value="customers" style="flex:0 0 auto;width:16px;height:16px;"><span style="flex:1 1 auto;min-width:0;">👥 العملاء</span></label>
-        <label style="display:flex;align-items:center;gap:10px;font-size:13px;width:100%;padding:4px 0;"><input type="checkbox" class="wipeItem" value="suppliers" style="flex:0 0 auto;width:16px;height:16px;"><span style="flex:1 1 auto;min-width:0;">🚚 الموردين</span></label>
-        <label style="display:flex;align-items:center;gap:10px;font-size:13px;width:100%;padding:4px 0;"><input type="checkbox" class="wipeItem" value="safe" style="flex:0 0 auto;width:16px;height:16px;"><span style="flex:1 1 auto;min-width:0;">💰 الخزنة</span></label>
-        <label style="display:flex;align-items:center;gap:10px;font-size:13px;width:100%;padding:4px 0;"><input type="checkbox" class="wipeItem" value="goldsmiths,goldsmith_tx" style="flex:0 0 auto;width:16px;height:16px;"><span style="flex:1 1 auto;min-width:0;">🔨 الصاغة وحساباتهم</span></label>
-        <label style="display:flex;align-items:center;gap:10px;font-size:13px;width:100%;padding:4px 0;"><input type="checkbox" class="wipeItem" value="invoices" style="flex:0 0 auto;width:16px;height:16px;"><span style="flex:1 1 auto;min-width:0;">🧾 الفواتير</span></label>
-        <label style="display:flex;align-items:center;gap:10px;font-size:13px;width:100%;padding:4px 0;"><input type="checkbox" class="wipeItem" value="layaway,old_gold,repairs,returns" style="flex:0 0 auto;width:16px;height:16px;"><span style="flex:1 1 auto;min-width:0;">🔄 الحركات (حجز/كسر/تصليح/مرتجع)</span></label>
-        <label style="display:flex;align-items:center;gap:10px;font-size:13px;width:100%;padding:4px 0;"><input type="checkbox" class="wipeItem" value="credit_ledger,opex,workshop_loss" style="flex:0 0 auto;width:16px;height:16px;"><span style="flex:1 1 auto;min-width:0;">📊 الحسابات المالية (آجل/مصروفات/فاقد)</span></label>
-        <label style="display:flex;align-items:center;gap:10px;font-size:13px;width:100%;padding:4px 0;"><input type="checkbox" class="wipeItem" value="audit_log" style="flex:0 0 auto;width:16px;height:16px;"><span style="flex:1 1 auto;min-width:0;">📜 سجل العمليات</span></label>
-      </div>
-
-      <label style="font-size:12.5px;color:var(--muted);">كلمة سر المطور</label>
-      <input type="password" id="devWipePassword" placeholder="••••••••" style="margin-bottom:12px;">
-
-      <button class="btn btn-danger" style="width:100%;" onclick="confirmWipeData()">🗑️ مسح الأقسام المحددة</button>
-    </div>
-  </div>
-
-  <!-- ================= LOGIN ACCOUNTS (DEVELOPER) ================= -->
-  <div class="panel" id="panel-accounts">
-    <div class="card glass" style="max-width:640px;margin:0 auto;">
-      <h2>🔑 حسابات الدخول المسجلة</h2>
-      <p style="color:var(--muted);font-size:12.5px;margin-bottom:16px;">هذا القسم للمطور فقط — يعرض كل الحسابات (اسم/رقم هاتف) اللي اتسجلت من شاشة الدخول.</p>
-
-      <div id="accountsGate">
-        <label style="font-size:12.5px;color:var(--muted);">كلمة سر المطور</label>
-        <input type="password" id="accountsPassword" placeholder="••••••••" style="margin-bottom:12px;">
-        <button class="btn btn-gold" style="width:100%;" onclick="unlockAccountsPanel()">فتح لوحة الحسابات</button>
-      </div>
-
-      <div id="accountsContent" style="display:none;">
-        <table style="width:100%;font-size:12.5px;border-collapse:collapse;">
-          <thead>
-            <tr style="color:var(--muted);text-align:right;">
-              <th style="padding:8px 4px;">الاسم</th>
-              <th style="padding:8px 4px;">رقم الهاتف</th>
-              <th style="padding:8px 4px;">تاريخ التسجيل</th>
-              <th style="padding:8px 4px;">آخر دخول</th>
-              <th style="padding:8px 4px;">الحالة</th>
-              <th style="padding:8px 4px;"></th>
-            </tr>
-          </thead>
-          <tbody id="accountsBody"></tbody>
-        </table>
-        <div class="empty" id="accountsEmpty" style="display:none;">لا يوجد حسابات مسجلة بعد</div>
-        <p style="color:var(--muted);font-size:11.5px;margin-top:14px;">ملاحظة: "حذف"/"تعطيل" هنا يمنعان الحساب من الدخول للنظام فوراً. حذف السجل نهائياً من نظام المصادقة نفسه (Firebase Auth) يحتاج أدوات مطور من لوحة Firebase مباشرة، لكنه يبقى غير فعّال (Blocked) بمجرد الحذف من هنا.</p>
+      <div class="card glass">
+        <h2>الطلبات الحالية</h2>
+        <table><thead><tr><th>العميل</th><th>الوصف</th><th>الورشة</th><th>الحالة</th><th></th></tr></thead><tbody id="repBody"></tbody></table>
+        <div class="empty" id="repEmpty">لا توجد طلبات تفصيل أو صيانة بعد</div>
       </div>
     </div>
   </div>
@@ -284,46 +260,29 @@
 
 <script>
 /* DB engine now comes from firestore-db.js (loaded in <head>) — shared live data for every user. */
-const SHOP_NAME = 'مجوهرات حسن نصار';
 function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3400); }
-async function sha256(text){ const enc=new TextEncoder().encode(text); const d=await crypto.subtle.digest('SHA-256',enc); return Array.from(new Uint8Array(d)).map(b=>b.toString(16).padStart(2,'0')).join(''); }
 
-let SETTINGS = { shopName:SHOP_NAME, branch:'الفرع الرئيسي', basePrice21:3850 };
-let USERS = [];
-let AUDIT = [];
-const KARATS = [24,14,12,9];
-
-async function logAudit(type, desc, by){
-  AUDIT.push({ id:'aud_'+Date.now(), type, desc, by: by||'صاحب المحل', at: Date.now() });
-  await DB.write('audit_log', AUDIT);
-  renderAudit();
-}
+let DATA = { inventory:[], invoices:[], safe:[], kasr:[], returns:[], layaway:[], repairs:[], settings:{} };
+let BASE_PRICE_21 = 3850;
+function pricePerGram(k){ return +(BASE_PRICE_21*(k/21)).toFixed(2); }
 
 async function afterConnect(){
   document.getElementById('gateScreen').style.display='none';
   document.getElementById('appScreen').style.display='block';
+  DATA.inventory = await DB.read('inventory', []);
+  DATA.invoices = await DB.read('invoices', []);
+  DATA.safe = await DB.read('safe', []);
+  DATA.kasr = await DB.read('old_gold', []);
+  DATA.returns = await DB.read('returns', []);
+  DATA.layaway = await DB.read('layaway', []);
+  DATA.repairs = await DB.read('repairs', []);
+  const settings = await DB.read('settings', {});
+  if(settings.basePrice21) BASE_PRICE_21 = settings.basePrice21;
 
-  SETTINGS = Object.assign(SETTINGS, await DB.read('settings', {}));
-  USERS = await DB.read('users', []);
-  AUDIT = await DB.read('audit_log', []);
-
-  document.getElementById('setShopName').value = SETTINGS.shopName || SHOP_NAME;
-  document.getElementById('setBranch').value = SETTINGS.branch || 'الفرع الرئيسي';
-  document.getElementById('setShopPhone').value = SETTINGS.shopPhone || '';
-  document.getElementById('setShopAddress').value = SETTINGS.shopAddress || '';
-  document.getElementById('setTaxNo').value = SETTINGS.taxNo || '';
-  document.getElementById('setBasePrice').value = SETTINGS.basePrice21 || 3850;
-
-  const silverPrices = await DB.read('silver_prices', { p999:0, p925:0, p800:0 });
-  document.getElementById('setSilver999').value = silverPrices.p999 || '';
-  document.getElementById('setSilver925').value = silverPrices.p925 || '';
-  document.getElementById('setSilver800').value = silverPrices.p800 || '';
-
-  previewKarats(); renderPermPreview(); renderUsers(); renderAudit();
+  renderAll();
 }
 (async function boot(){ const ok = await DB.tryAutoConnect(); if(ok) afterConnect(); })();
 
-/* ===== TABS ===== */
 document.querySelectorAll('.tab').forEach(t=>{
   t.addEventListener('click', ()=>{
     document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
@@ -332,280 +291,243 @@ document.querySelectorAll('.tab').forEach(t=>{
   });
 });
 
-/* ===== GENERAL SETTINGS ===== */
-async function saveGeneral(){
-  const next = Object.assign({}, SETTINGS, {
-    shopName: document.getElementById('setShopName').value.trim() || SHOP_NAME,
-    branch: document.getElementById('setBranch').value.trim(),
-    shopPhone: document.getElementById('setShopPhone').value.trim(),
-    shopAddress: document.getElementById('setShopAddress').value.trim(),
-    taxNo: document.getElementById('setTaxNo').value.trim()
-  });
-  try{
-    await DB.write('settings', next);
-    SETTINGS = next;
-    await logAudit('edit', 'تعديل بيانات المحل (الاسم/الفرع)');
-    showToast('تم حفظ بيانات المحل');
-  }catch(err){
-    console.error('Shop settings save failed:', err);
-    showToast('⚠️ لم يتم حفظ بيانات المحل على السحابة — تأكد من الإنترنت وحاول مرة أخرى.');
-  }
-}
+function renderAll(){ renderKasr(); renderReturns(); renderLayaway(); renderRepairs(); renderWorkshopList(); }
 
-function previewKarats(){
-  const base = parseFloat(document.getElementById('setBasePrice').value) || 0;
-  document.getElementById('karatPreview').innerHTML = KARATS.map(k=>{
-    const p = (base*(k/21)).toFixed(2);
-    return `<div class="c">عيار ${k}<b>${p}</b></div>`;
-  }).join('');
+/* ============ OLD GOLD (KASR) ============ */
+function calcKasr(){
+  const gross = parseFloat(document.getElementById('kasrGross').value)||0;
+  const deduct = parseFloat(document.getElementById('kasrDeduct').value)||0;
+  const karat = parseInt(document.getElementById('kasrKarat').value,10);
+  const net = Math.max(0, gross-deduct);
+  const price = pricePerGram(karat);
+  const value = net*price;
+  document.getElementById('kasrNet').textContent = net.toFixed(2)+' جم';
+  document.getElementById('kasrPrice').textContent = price.toFixed(2)+' ج.م';
+  document.getElementById('kasrValue').textContent = value.toFixed(2)+' ج.م';
 }
-async function saveGoldPrice(){
-  const next = Object.assign({}, SETTINGS, { basePrice21: parseFloat(document.getElementById('setBasePrice').value) || 0 });
-  try{
-    await DB.write('settings', next);
-    SETTINGS = next;
-    await logAudit('edit', `تحديث سعر جرام عيار 21 إلى ${SETTINGS.basePrice21} ج.م`);
-    await broadcastPublicPrices();
-    showToast('تم حفظ السعر — سيُقرأ تلقائياً من كل الشاشات الأخرى وموقع البورتفوليو');
-  }catch(err){
-    console.error('Gold price save failed:', err);
-    showToast('⚠️ لم يتم حفظ السعر على السحابة — تأكد من الإنترنت وحاول مرة أخرى.');
-  }
-}
+calcKasr();
 
-async function saveSilverPrices(){
-  const prices = {
-    p999: parseFloat(document.getElementById('setSilver999').value) || 0,
-    p925: parseFloat(document.getElementById('setSilver925').value) || 0,
-    p800: parseFloat(document.getElementById('setSilver800').value) || 0
-  };
-  try{
-    await DB.write('silver_prices', prices);
-    await logAudit('edit', `تحديث أسعار الفضة (999: ${prices.p999} / 925: ${prices.p925} / 800: ${prices.p800})`);
-    await broadcastPublicPrices();
-    showToast('تم حفظ أسعار الفضة — ستُقرأ تلقائياً من المخزون والفواتير وموقع البورتفوليو');
-  }catch(err){
-    console.error('Silver price save failed:', err);
-    showToast('⚠️ لم يتم حفظ أسعار الفضة على السحابة — تأكد من الإنترنت وحاول مرة أخرى.');
-  }
-}
+async function saveKasr(){
+  const gross = parseFloat(document.getElementById('kasrGross').value)||0;
+  const deduct = parseFloat(document.getElementById('kasrDeduct').value)||0;
+  const karat = parseInt(document.getElementById('kasrKarat').value,10);
+  const net = Math.max(0, gross-deduct);
+  const price = pricePerGram(karat);
+  const value = +(net*price).toFixed(2);
+  const custName = document.getElementById('kasrCustName').value.trim();
+  const custPhone = document.getElementById('kasrCustPhone').value.trim();
+  if(!net){ showToast('أدخل الوزن'); return; }
 
-/* =========================================================
-   PUBLIC PRICE BROADCAST — writes only the public-facing price
-   numbers (never inventory, customers, safe, or anything else)
-   into a separate, isolated Firestore document that the public
-   portfolio website reads live with NO login required. Keep the
-   Firestore security rule scoped to exactly this one document —
-   see the note printed in the console for the exact rule text.
-========================================================= */
-async function broadcastPublicPrices(){
-  try{
-    const silver = await DB.read('silver_prices', { p999:0, p925:0, p800:0 });
-    const karats = [24,14,12,9].map(k=>({ karat:k, price:+(SETTINGS.basePrice21*(k/21)).toFixed(2) }));
-    await firebase.firestore().collection('public_data').doc('prices').set({
-      shopName: SETTINGS.shopName || SHOP_NAME,
-      basePrice21: SETTINGS.basePrice21 || 0,
-      karats,
-      silver,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge:true });
-  }catch(e){
-    console.warn('Public price broadcast failed (portfolio site will keep showing the last known price):', e);
-  }
-}
+  const nextInventory = DATA.inventory.concat({ id:'inv_'+Date.now(), name:'ذهب مستعمل (كسر) - عيار '+karat, code:'KASR'+Date.now().toString().slice(-8),
+    karat, netW:net, grossW:gross, feeRetail:0, feeWholesale:0, supplierId:'', goldsmithId:'', status:'available',
+    category:'old_gold', addedAt:Date.now() });
+  const nextSafe = DATA.safe.concat({ id:'sfx_'+Date.now(), type:'expense', amount:value, desc:'شراء ذهب كسر من: '+(custName||'عميل'), at:Date.now() });
+  const nextKasr = DATA.kasr.concat({ id:'kasr_'+Date.now(), custName, custPhone, karat, net, gross, value, at:Date.now() });
 
-/* ===== USERS & PERMISSIONS ===== */
-const ROLE_PERMS = {
-  seller: [
-    {key:'create_invoice', label:'إنشاء فاتورة بيع', checked:true},
-    {key:'view_inventory', label:'عرض المخزون', checked:true},
-    {key:'edit_price', label:'تعديل سعر الجرام', checked:false},
-    {key:'view_wholesale_fee', label:'الاطلاع على مصنعية الجملة', checked:false},
-    {key:'delete_invoice', label:'حذف فاتورة بعد إتمامها', checked:false},
-    {key:'view_reports', label:'الاطلاع على التقارير المالية', checked:false},
-  ],
-  accountant: [
-    {key:'create_invoice', label:'إنشاء فاتورة بيع', checked:false},
-    {key:'view_inventory', label:'عرض المخزون', checked:true},
-    {key:'edit_price', label:'تعديل سعر الجرام', checked:false},
-    {key:'view_wholesale_fee', label:'الاطلاع على مصنعية الجملة', checked:true},
-    {key:'delete_invoice', label:'حذف فاتورة بعد إتمامها', checked:false},
-    {key:'view_reports', label:'الاطلاع على التقارير المالية', checked:true},
-  ],
-  owner: [
-    {key:'create_invoice', label:'إنشاء فاتورة بيع', checked:true},
-    {key:'view_inventory', label:'عرض المخزون', checked:true},
-    {key:'edit_price', label:'تعديل سعر الجرام', checked:true},
-    {key:'view_wholesale_fee', label:'الاطلاع على مصنعية الجملة', checked:true},
-    {key:'delete_invoice', label:'حذف فاتورة بعد إتمامها', checked:true},
-    {key:'view_reports', label:'الاطلاع على التقارير المالية', checked:true},
-  ]
-};
-function renderPermPreview(){
-  const role = document.getElementById('usrRole').value;
-  const perms = ROLE_PERMS[role];
-  document.getElementById('permPreview').innerHTML = perms.map(p=>`
-    <label class="perm-item"><input type="checkbox" data-key="${p.key}" ${p.checked?'checked':''}> ${p.label}</label>
-  `).join('');
-}
-async function addUser(){
-  const name = document.getElementById('usrName').value.trim();
-  const login = document.getElementById('usrLogin').value.trim();
-  const role = document.getElementById('usrRole').value;
-  if(!name || !login){ showToast('أدخل الاسم واسم الدخول'); return; }
-  const perms = Array.from(document.querySelectorAll('#permPreview input[type=checkbox]'))
-    .filter(c=>c.checked).map(c=>c.dataset.key);
+  try{
+    await DB.write('inventory', nextInventory); DATA.inventory = nextInventory;
+    await DB.write('safe', nextSafe); DATA.safe = nextSafe;
+    await DB.write('old_gold', nextKasr); DATA.kasr = nextKasr;
 
-  const next = USERS.concat({ id:'usr_'+Date.now(), name, login, role, perms, addedAt: Date.now() });
-  try{
-    await DB.write('users', next);
-    USERS = next;
-    await logAudit('create', `إضافة مستخدم جديد: ${name} (${role})`);
-    document.getElementById('usrName').value=''; document.getElementById('usrLogin').value='';
-    renderUsers();
-    showToast('تمت إضافة المستخدم وصلاحياته');
+    ['kasrGross','kasrDeduct','kasrCustName','kasrCustPhone'].forEach(id=>document.getElementById(id).value='');
+    calcKasr(); renderKasr();
+    showToast('تم ترحيل الكسر للمخزون وصرف القيمة من الخزنة');
   }catch(err){
-    console.error('User save failed:', err);
-    showToast('⚠️ لم يتم حفظ المستخدم على السحابة — تأكد من الإنترنت وحاول مرة أخرى.');
+    console.error('Kasr save failed:', err);
+    showToast('⚠️ لم يتم حفظ عملية الكسر على السحابة — تأكد من الإنترنت وحاول مرة أخرى.');
   }
 }
-async function deleteUser(id){
-  const u = USERS.find(x=>x.id===id);
-  const next = USERS.filter(x=>x.id!==id);
-  try{
-    await DB.write('users', next);
-    USERS = next;
-    await logAudit('delete', `حذف المستخدم: ${u?u.name:id}`);
-    renderUsers();
-  }catch(err){
-    console.error('User delete failed:', err);
-    showToast('⚠️ لم يتم حذف المستخدم من السحابة — حاول مرة أخرى.');
-  }
-}
-function renderUsers(){
-  document.getElementById('usersEmpty').style.display = USERS.length ? 'none' : 'block';
-  const roleLabel = {owner:'مدير', seller:'بائع', accountant:'محاسب'};
-  document.getElementById('usersBody').innerHTML = USERS.map(u=>`
-    <tr><td>${u.name}</td><td style="font-family:ui-monospace,Menlo,monospace;">${u.login}</td>
-    <td><span class="role-badge ${u.role}">${roleLabel[u.role]}</span></td>
-    <td><button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')">حذف</button></td></tr>
+function renderKasr(){
+  document.getElementById('kasrEmpty').style.display = DATA.kasr.length?'none':'block';
+  document.getElementById('kasrBody').innerHTML = [...DATA.kasr].reverse().map(k=>`
+    <tr><td>${k.custName||'—'}</td><td>${k.karat}</td><td>${k.net.toFixed(2)} جم</td><td>${k.value.toFixed(2)} ج.م</td><td style="color:var(--muted);">${new Date(k.at).toLocaleDateString('ar-EG')}</td></tr>
   `).join('');
 }
 
-/* ===== AUDIT TRAIL RENDER ===== */
-function renderAudit(){
-  document.getElementById('auditEmpty').style.display = AUDIT.length ? 'none' : 'block';
-  document.getElementById('auditBody').innerHTML = [...AUDIT].reverse().map(a=>`
-    <tr><td><span class="audit-type ${a.type}">${a.type==='delete'?'حذف':a.type==='edit'?'تعديل':'إنشاء'}</span></td>
-    <td>${a.desc}</td><td style="color:var(--muted);">${a.by}</td>
-    <td style="color:var(--muted);">${new Date(a.at).toLocaleString('ar-EG')}</td></tr>
+/* ============ RETURNS ============ */
+let retSelected = null;
+function renderRetResults(){
+  const q = document.getElementById('retSearch').value.trim();
+  const box = document.getElementById('retResults');
+  document.getElementById('retCalcBox').style.display='none';
+  if(q.length<2){ box.innerHTML=''; return; }
+  const matches = DATA.inventory.filter(i=>i.status==='sold' && i.code.includes(q)).slice(0,6);
+  box.innerHTML = matches.map(i=>`<div class="sr-item" onclick="selectReturn('${i.id}')"><span>${i.name}</span><span style="color:var(--muted);font-family:ui-monospace,Menlo,monospace;">${i.code}</span></div>`).join('') || '<div class="empty">لا توجد قطعة مباعة بهذا الكود</div>';
+}
+function selectReturn(id){
+  retSelected = DATA.inventory.find(i=>i.id===id);
+  const price = pricePerGram(retSelected.karat);
+  const goldVal = retSelected.netW*price;
+  document.getElementById('retWeight').textContent = retSelected.netW.toFixed(2)+' جم';
+  document.getElementById('retPrice').textContent = price.toFixed(2)+' ج.م';
+  document.getElementById('retGoldVal').textContent = goldVal.toFixed(2)+' ج.م';
+  document.getElementById('retRefund').textContent = goldVal.toFixed(2)+' ج.م';
+  document.getElementById('retCalcBox').style.display='block';
+}
+async function confirmReturn(){
+  if(!retSelected) return;
+  const price = pricePerGram(retSelected.karat);
+  const refund = +(retSelected.netW*price).toFixed(2);
+  const prevStatus = retSelected.status;
+
+  retSelected.status = 'available'; // back to stock
+  const nextSafe = DATA.safe.concat({ id:'sfx_'+Date.now(), type:'expense', amount:refund, desc:'استرجاع قطعة: '+retSelected.name, at:Date.now() });
+  const nextReturns = DATA.returns.concat({ id:'ret_'+Date.now(), itemName:retSelected.name, code:retSelected.code, refund, at:Date.now() });
+
+  try{
+    await DB.write('inventory', DATA.inventory);
+    await DB.write('safe', nextSafe); DATA.safe = nextSafe;
+    await DB.write('returns', nextReturns); DATA.returns = nextReturns;
+
+    document.getElementById('retSearch').value=''; document.getElementById('retResults').innerHTML='';
+    document.getElementById('retCalcBox').style.display='none';
+    retSelected=null;
+    renderReturns();
+    showToast('تم الاسترجاع وخصم المبلغ من الخزنة وإعادة القطعة للمخزون');
+  }catch(err){
+    retSelected.status = prevStatus;
+    console.error('Return save failed:', err);
+    showToast('⚠️ لم يتم حفظ عملية الاسترجاع على السحابة — تأكد من الإنترنت وحاول مرة أخرى.');
+  }
+}
+function renderReturns(){
+  document.getElementById('retEmpty').style.display = DATA.returns.length?'none':'block';
+  document.getElementById('retBody').innerHTML = [...DATA.returns].reverse().map(r=>`
+    <tr><td>${r.itemName}</td><td style="font-family:ui-monospace,Menlo,monospace;">${r.code}</td><td>${r.refund.toFixed(2)} ج.م</td><td style="color:var(--muted);">${new Date(r.at).toLocaleDateString('ar-EG')}</td></tr>
   `).join('');
 }
 
-/* ===== DEVELOPER DANGER ZONE: DATA WIPE ===== */
-const DEV_WIPE_PASSWORD = '@#AbdullahFdmra132013';
-
-function toggleWipeAll(checked){
-  document.querySelectorAll('.wipeItem').forEach(cb => cb.checked = checked);
+/* ============ LAYAWAY ============ */
+let laySelected = null;
+function renderLaySearch(){
+  const q = document.getElementById('laySearch').value.trim();
+  const box = document.getElementById('layResults');
+  document.getElementById('laySelectedBox').style.display='none';
+  if(q.length<2){ box.innerHTML=''; return; }
+  const matches = DATA.inventory.filter(i=>i.status==='available' && (i.code.includes(q)||i.name.includes(q))).slice(0,6);
+  box.innerHTML = matches.map(i=>`<div class="sr-item" onclick="selectLayaway('${i.id}')"><span>${i.name}</span><span style="color:var(--muted);font-family:ui-monospace,Menlo,monospace;">${i.code}</span></div>`).join('') || '<div class="empty">لا توجد نتائج</div>';
 }
-
-async function confirmWipeData(){
-  const password = document.getElementById('devWipePassword').value;
-  if(password !== DEV_WIPE_PASSWORD){
-    showToast('كلمة سر المطور غير صحيحة');
-    return;
-  }
-
-  const checked = Array.from(document.querySelectorAll('.wipeItem:checked'));
-  if(checked.length === 0){
-    showToast('اختر قسم واحد على الأقل للمسح');
-    return;
-  }
-
-  const labels = checked.map(cb => cb.closest('label').textContent.trim());
-  const step1 = confirm('تحذير: سيتم مسح البيانات نهائياً لهذه الأقسام:\n\n' + labels.join('\n') + '\n\nهذا الإجراء لا يمكن التراجع عنه. هل أنت متأكد؟');
-  if(!step1) return;
-  const step2 = confirm('تأكيد أخير: هل تريد فعلاً المسح الآن؟ لن تتمكن من استرجاع البيانات بعد هذه الخطوة.');
-  if(!step2) return;
-
-  // collect every storage key across all selected sections
-  const keys = [];
-  checked.forEach(cb => cb.value.split(',').forEach(k => keys.push(k.trim())));
-
-  for(const key of keys){
-    try{
-      await DB.write(key, []);
-    }catch(err){
-      console.error('Wipe failed for key:', key, err);
-      showToast('⚠️ توقف المسح — فشل حذف قسم "'+key+'" على السحابة. تأكد من الإنترنت وحاول مرة أخرى.');
-      return;
-    }
-  }
-
-  // reset in-memory audit log state if it was part of the wipe, then log the wipe itself
-  if(keys.includes('audit_log')){
-    AUDIT = [];
-  }
-  await logAudit('delete', 'مسح بيانات (المطور): ' + labels.join('، '), 'المطور');
-
-  document.getElementById('devWipePassword').value = '';
-  document.getElementById('wipeAll').checked = false;
-  document.querySelectorAll('.wipeItem').forEach(cb => cb.checked = false);
-
-  showToast('تم مسح الأقسام المحددة بنجاح');
-  setTimeout(() => location.reload(), 1200);
+function selectLayaway(id){
+  laySelected = DATA.inventory.find(i=>i.id===id);
+  document.getElementById('laySelectedName').textContent = laySelected.name + ' — ' + laySelected.code;
+  document.getElementById('laySelectedBox').style.display='block';
 }
+async function saveLayaway(){
+  if(!laySelected) return;
+  const custName = document.getElementById('layCustName').value.trim();
+  const custPhone = document.getElementById('layCustPhone').value.trim();
+  const deposit = parseFloat(document.getElementById('layDeposit').value)||0;
+  const lockPrice = document.getElementById('layLockPrice').checked;
+  const date = document.getElementById('layDate').value;
+  if(!custName || !deposit){ showToast('أدخل اسم العميل ومبلغ العربون'); return; }
+  const prevStatus = laySelected.status;
 
-/* ===== LOGIN ACCOUNTS PANEL (DEVELOPER) ===== */
-const fbAccountsDb = firebase.firestore();
+  laySelected.status = 'reserved';
+  const nextSafe = DATA.safe.concat({ id:'sfx_'+Date.now(), type:'income', amount:deposit, desc:'عربون حجز: '+laySelected.name, at:Date.now() });
+  const lockedPrice = lockPrice ? pricePerGram(laySelected.karat) : null;
+  const nextLayaway = DATA.layaway.concat({ id:'lay_'+Date.now(), itemId:laySelected.id, itemName:laySelected.name, custName, custPhone, deposit, lockedPrice, deliveryDate:date, status:'reserved', at:Date.now() });
 
-async function unlockAccountsPanel(){
-  const password = document.getElementById('accountsPassword').value;
-  if(password !== DEV_WIPE_PASSWORD){
-    showToast('كلمة سر المطور غير صحيحة');
-    return;
+  try{
+    await DB.write('inventory', DATA.inventory);
+    await DB.write('safe', nextSafe); DATA.safe = nextSafe;
+    await DB.write('layaway', nextLayaway); DATA.layaway = nextLayaway;
+
+    ['layCustName','layCustPhone','layDeposit','layDate'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('layLockPrice').checked=false;
+    laySelected=null; document.getElementById('laySelectedBox').style.display='none';
+    document.getElementById('layResults').innerHTML=''; document.getElementById('laySearch').value='';
+    renderLayaway();
+    showToast('تم تأكيد الحجز والقطعة محجوزة الآن من المخزون');
+  }catch(err){
+    laySelected.status = prevStatus;
+    console.error('Layaway save failed:', err);
+    showToast('⚠️ لم يتم حفظ الحجز على السحابة — تأكد من الإنترنت وحاول مرة أخرى.');
   }
-  document.getElementById('accountsGate').style.display = 'none';
-  document.getElementById('accountsContent').style.display = 'block';
-  await loadAccounts();
 }
-
-async function loadAccounts(){
-  const snap = await fbAccountsDb.collection('accounts').get();
-  const rows = [];
-  snap.forEach(doc => rows.push({ id: doc.id, ...doc.data() }));
-
-  document.getElementById('accountsEmpty').style.display = rows.length ? 'none' : 'block';
-  const fmt = (ts) => ts && ts.toDate ? ts.toDate().toLocaleString('ar-EG') : '—';
-
-  document.getElementById('accountsBody').innerHTML = rows.map(r => `
-    <tr>
-      <td style="padding:8px 4px;">${r.name || '—'}</td>
-      <td style="padding:8px 4px;font-family:ui-monospace,Menlo,monospace;">${r.phone || '—'}</td>
-      <td style="padding:8px 4px;color:var(--muted);">${fmt(r.createdAt)}</td>
-      <td style="padding:8px 4px;color:var(--muted);">${fmt(r.lastLogin)}</td>
-      <td style="padding:8px 4px;">${r.disabled ? (r.lastLogin ? '<span style="color:#FF9791;">معطّل</span>' : '<span style="color:var(--gold-1);">قيد الموافقة</span>') : '<span style="color:var(--green);">فعّال</span>'}</td>
-      <td style="padding:8px 4px;white-space:nowrap;">
-        <button class="btn btn-ghost btn-sm" onclick="toggleAccountDisabled('${r.id}', ${!r.disabled})">${r.disabled ? 'تفعيل' : 'تعطيل'}</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteAccount('${r.id}')">حذف</button>
-      </td>
-    </tr>
+async function completeLayaway(id){
+  const lay = DATA.layaway.find(l=>l.id===id);
+  const item = DATA.inventory.find(i=>i.id===lay.itemId);
+  const prevItemStatus = item ? item.status : null;
+  const prevLayStatus = lay.status;
+  if(item) item.status = 'sold';
+  lay.status = 'completed';
+  try{
+    await DB.write('inventory', DATA.inventory);
+    await DB.write('layaway', DATA.layaway);
+    renderLayaway();
+    showToast('تم تسليم القطعة نهائياً للعميل');
+  }catch(err){
+    if(item) item.status = prevItemStatus;
+    lay.status = prevLayStatus;
+    console.error('Layaway completion failed:', err);
+    showToast('⚠️ لم يتم حفظ تسليم القطعة على السحابة — تأكد من الإنترنت وحاول مرة أخرى.');
+  }
+}
+function renderLayaway(){
+  document.getElementById('layEmpty').style.display = DATA.layaway.length?'none':'block';
+  document.getElementById('layBody').innerHTML = [...DATA.layaway].reverse().map(l=>`
+    <tr><td>${l.itemName}</td><td>${l.custName}</td><td>${l.deposit.toFixed(2)} ج.م</td>
+    <td><span class="status-pill ${l.status}">${l.status==='reserved'?'محجوز':'تم التسليم'}</span></td>
+    <td>${l.status==='reserved' ? `<button class="btn btn-gold btn-sm" onclick="completeLayaway('${l.id}')">تسليم نهائي</button>` : ''}</td></tr>
   `).join('');
 }
 
-async function toggleAccountDisabled(uid, disable){
-  await fbAccountsDb.collection('accounts').doc(uid).update({ disabled: disable });
-  await logAudit('edit', (disable ? 'تعطيل' : 'تفعيل') + ' حساب دخول: ' + uid, 'المطور');
-  await loadAccounts();
-  showToast(disable ? 'تم تعطيل الحساب' : 'تم تفعيل الحساب');
+/* ============ REPAIRS / CUSTOM ORDERS ============ */
+function renderWorkshopList(){
+  const workshops = [...new Set(DATA.repairs.map(r=>r.workshop).filter(Boolean))];
+  document.getElementById('workshopList').innerHTML = workshops.map(w=>`<option value="${w}">`).join('');
 }
+async function saveRepair(){
+  const custName = document.getElementById('repCustName').value.trim();
+  const custPhone = document.getElementById('repCustPhone').value.trim();
+  const desc = document.getElementById('repDesc').value.trim();
+  const weight = parseFloat(document.getElementById('repWeight').value)||0;
+  const workshop = document.getElementById('repWorkshop').value.trim();
+  const date = document.getElementById('repDate').value;
+  const deposit = parseFloat(document.getElementById('repDeposit').value)||0;
+  if(!custName || !desc){ showToast('أدخل اسم العميل ووصف الطلب'); return; }
 
-async function deleteAccount(uid){
-  if(!confirm('هل أنت متأكد من حذف سجل هذا الحساب؟ لن يتمكن من الدخول بعدها.')) return;
-  await fbAccountsDb.collection('accounts').doc(uid).delete();
-  await logAudit('delete', 'حذف حساب دخول: ' + uid, 'المطور');
-  await loadAccounts();
-  showToast('تم حذف سجل الحساب');
+  const nextSafe = deposit>0
+    ? DATA.safe.concat({ id:'sfx_'+Date.now(), type:'income', amount:deposit, desc:'عربون تفصيل/صيانة: '+custName, at:Date.now() })
+    : DATA.safe;
+  const nextRepairs = DATA.repairs.concat({ id:'rep_'+Date.now(), custName, custPhone, desc, weight, workshop, date, deposit, status:'received', at:Date.now() });
+
+  try{
+    if(deposit>0){ await DB.write('safe', nextSafe); DATA.safe = nextSafe; }
+    await DB.write('repairs', nextRepairs); DATA.repairs = nextRepairs;
+
+    ['repCustName','repCustPhone','repDesc','repWeight','repWorkshop','repDate'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('repDeposit').value='0';
+    renderRepairs(); renderWorkshopList();
+    showToast('تم تسجيل طلب التفصيل/الصيانة');
+  }catch(err){
+    console.error('Repair save failed:', err);
+    showToast('⚠️ لم يتم حفظ طلب التفصيل/الصيانة على السحابة — تأكد من الإنترنت وحاول مرة أخرى.');
+  }
+}
+const REP_STATUSES = ['received','workshop','ready','delivered'];
+const REP_LABELS = {received:'تم الاستلام', workshop:'في الورشة', ready:'جاهز للتسليم', delivered:'تم التسليم'};
+async function advanceRepair(id){
+  const r = DATA.repairs.find(x=>x.id===id);
+  const idx = REP_STATUSES.indexOf(r.status);
+  const prevStatus = r.status;
+  if(idx < REP_STATUSES.length-1) r.status = REP_STATUSES[idx+1];
+  try{
+    await DB.write('repairs', DATA.repairs);
+    renderRepairs();
+  }catch(err){
+    r.status = prevStatus;
+    console.error('Repair status update failed:', err);
+    showToast('⚠️ لم يتم حفظ حالة الطلب على السحابة — حاول مرة أخرى.');
+  }
+}
+function renderRepairs(){
+  document.getElementById('repEmpty').style.display = DATA.repairs.length?'none':'block';
+  document.getElementById('repBody').innerHTML = [...DATA.repairs].reverse().map(r=>`
+    <tr><td>${r.custName}</td><td>${r.desc}</td><td>${r.workshop||'—'}</td>
+    <td><span class="status-pill ${r.status}">${REP_LABELS[r.status]}</span></td>
+    <td>${r.status!=='delivered' ? `<button class="btn btn-gold btn-sm" onclick="advanceRepair('${r.id}')">الحالة التالية</button>` : ''}</td></tr>
+  `).join('');
 }
 </script>
 </body>
